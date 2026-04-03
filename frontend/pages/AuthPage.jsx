@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore, findUser, updatePassword } from "../store/authStore";
 import { ShieldCheck, Circle, AlertCircle, Shield } from "lucide-react";
+import api from "../services/api.js";
 import "./Auth.css";
 
 export default function AuthPage() {
@@ -68,20 +69,13 @@ export default function AuthPage() {
     else if (step === 2) {
       // Login Step 2: Check Password
       try {
-        const response = await fetch("http://10.123.62.0:8080/api/users/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            identifier: formData.identifier,
-            email: formData.identifier, // sending both just in case backend expects email
-            password: formData.password
-          })
+        const data = await api.login({
+          identifier: formData.identifier,
+          email: formData.identifier, // sending both just in case backend expects email
+          password: formData.password
         });
 
-        if (response.ok) {
-          const data = await response.json();
+        if (data) {
           login({ 
             id: data.id || data.user?.id || "user_1", 
             name: data.name || data.user?.name || "User", 
@@ -89,9 +83,6 @@ export default function AuthPage() {
             activePlan: data.activePlan || data.user?.activePlan || "none",
             isOnboardingComplete: data.isOnboardingComplete || data.user?.isOnboardingComplete || false
           }, data.token || "real_token");
-        } else {
-          // If backend returns 401 or similar
-          setError("Incorrect password or identifier. Please try again.");
         }
       } catch (err) {
         console.error("Login API error:", err);

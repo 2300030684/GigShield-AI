@@ -4,6 +4,80 @@
    override any existing classes.
    ════════════════════════════════════════════ */
 
+/* ── H3 GEOSPATIAL GRID ── */
+.h3-grid-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.h3-hex-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.h3-hex {
+  stroke: var(--border);
+  stroke-width: 1;
+  fill: transparent;
+  transition: all 0.3s ease;
+}
+
+.h3-hex-disrupted {
+  fill: rgba(220, 38, 38, 0.1);
+  stroke: var(--accent-red);
+  stroke-width: 2;
+  animation: hexPulse 2s infinite;
+}
+
+.h3-hex-worker {
+  fill: rgba(37, 99, 235, 0.2);
+  stroke: var(--accent-cyan);
+  stroke-width: 2;
+}
+
+@keyframes hexPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.h3-info-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.h3-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+}
+
+.h3-status-dot.disrupted {
+  background: var(--accent-red);
+  box-shadow: 0 0 8px var(--accent-red);
+}
+
 /* ── DISRUPTION BANNER ── */
 .disruption-banner {
   display: flex;
@@ -208,8 +282,20 @@
 .zt-step-icon {
   font-size: 18px;
   flex-shrink: 0;
-  width: 28px;
-  text-align: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.zt-step.zt-step-done .zt-step-icon {
+  background: var(--accent-cyan-dim);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
 }
 
 .zt-spinner-mini {

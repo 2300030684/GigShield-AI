@@ -6,7 +6,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ArrowUpRight, Shield, IndianRupee, TrendingUp, Star, AlertCircle, Loader2, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
-import { DisruptionBanner, ZeroTouchOverlay, useDashboardTriggers } from '../components/AIEngineComponents.jsx';
+import { DisruptionBanner, ZeroTouchOverlay, useDashboardTriggers, H3RiskMap } from '../components/AIEngineComponents.jsx';
+import { h3Index } from '../utils/h3_simulator.js';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -20,9 +21,36 @@ const UserDashboard = () => {
   const { activeTriggers, dismissTrigger } = useDashboardTriggers();
 
   useEffect(() => {
-    const loadDashboard = async () => {
+    const syncLocationAndLoad = async () => {
       try {
-        // Parallel load all dashboard data
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+            try {
+              // 1. Sync location to backend
+              await api.request('POST', '/location', coords);
+            } catch (e) {
+              console.warn("Location sync failed, but continuing with load...", e);
+            }
+            
+            // 2. Load dashboard data
+            await loadDataGrid();
+          }, (geoErr) => {
+            console.warn("Geolocation denied or failed:", geoErr);
+            loadDataGrid();
+          });
+        } else {
+          loadDataGrid();
+        }
+      } catch (err) {
+        console.error('Dashboard setup error:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    const loadDataGrid = async () => {
+      try {
         const [meRes, statsRes, forecastRes] = await Promise.all([
           api.getMe(),
           api.getClaimStats(),
@@ -34,13 +62,14 @@ const UserDashboard = () => {
         setClaimStats(statsRes);
         setWeeklyData(forecastRes.forecast || []);
       } catch (err) {
-        console.error('Dashboard load error:', err);
+        console.error("Dashboard load failed:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    loadDashboard();
+
+    syncLocationAndLoad();
   }, []);
 
   if (loading) {
@@ -117,6 +146,8 @@ const UserDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}>
             <MapPin size={14} />
             <span>{user.zone || 'Zone'}, {user.city} — {user.platform || 'Platform'} Verified</span>
+            <span style={{ margin: '0 8px', opacity: 0.2 }}>|</span>
+            <span style={{ fontFamily: 'monospace', color: 'var(--accent-cyan)', fontWeight: 600 }}>HEX: {h3Index.getHexForLocation(user.zone, user.city)}</span>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -164,18 +195,22 @@ const UserDashboard = () => {
         </Card>
 
         <Card>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '16px' }}>CLAIM SUCCESS RATE</div>
-          <div style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px', color: 'var(--accent-green)' }}>
-            {successRate}%
+          <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '16px' }}>TRUSTPAY REWARDS</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>⭐</div>
+            <div>
+              <div style={{ fontSize: '20px', fontWeight: 700 }}>₹{user.rewardsBalance || 450}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Loyalty Credits</div>
+            </div>
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            ROI: {claimStats?.returnRatio ? `${(claimStats.returnRatio * 100).toFixed(0)}%` : 'N/A'}
+          <div style={{ fontSize: '11px', color: 'var(--accent-green)', fontWeight: 600 }}>
+            Next Reward: 4 days remaining
           </div>
         </Card>
       </div>
 
-      {/* Chart */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px', marginBottom: '32px' }}>
+      {/* Maps & Charts */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '24px', marginBottom: '32px' }}>
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px' }}>AI Revenue Forecast (7 Days)</h3>
@@ -205,6 +240,21 @@ const UserDashboard = () => {
               <p>Forecast loading...</p>
             </div>
           )}
+        </Card>
+
+        <Card glow style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '18px' }}>Live H3 Risk Grid</h3>
+            <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--accent-green)', animation: 'pulse 2s infinite' }} />
+          </div>
+          <H3RiskMap 
+            city={user.city} 
+            zone={user.zone} 
+            isDisrupted={activeTriggers.some(t => t.triggerID === 'TRIGGER_RAIN' || t.triggerID === 'TRIGGER_FLOOD')} 
+          />
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '12px' }}>
+            📡 Real-time street-level spatial matching active
+          </div>
         </Card>
       </div>
 

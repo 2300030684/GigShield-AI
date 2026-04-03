@@ -30,6 +30,8 @@ export const TrustpayDB = {
     totalClaimsCount: 8,
     premiumPaidToDate: 1820,   // 52 weeks × ₹35
     claimReturnRatio: 3.76,    // ₹6840 returned / ₹1820 paid
+    rewardsBalance: 450,        // Loyalty credits
+    currentHexID: '8a2a1072b59ffff',
   },
 
   // ── PLANS (single source of truth) ──
@@ -396,6 +398,19 @@ export const TrustpayDB = {
     { id: "U-6641", name: "Manoj T.",   city: "Pune",      issue: "Duplicate Claim", score: 76, status: "review",  amount: 330,  date: "Jun 23" },
     { id: "U-1122", name: "Raju B.",    city: "Hyderabad", issue: "GPS Mismatch",    score: 88, status: "pending", amount: 560,  date: "Jun 23" },
     { id: "U-8834", name: "Santosh L.", city: "Mumbai",    issue: "Velocity Fraud",  score: 82, status: "review",  amount: 720,  date: "Jun 22" },
+  ],
+
+  // ── NEW: WORKER ZONE LOGS (H3 History) ──
+  workerZoneLogs: [
+    { timestamp: "2025-06-28T16:00:00Z", h3Index: "8a2a1072b59ffff", speed: 22, activity: "active" },
+    { timestamp: "2025-06-28T16:15:00Z", h3Index: "8a2a1072b59ffff", speed: 5,  activity: "delivering" },
+    { timestamp: "2025-06-28T16:30:00Z", h3Index: "8a2a1072b59ffff", speed: 18, activity: "active" },
+  ],
+
+  // ── NEW: PARAMETRIC TRANSACTIONS ──
+  transactions: [
+    { id: "TXN-7721", date: "2025-06-28", type: "payout", amount: 338, status: "completed", method: "UPI", desc: "Rain Disruption Payout" },
+    { id: "TXN-7720", date: "2025-06-23", type: "premium", amount: 35, status: "completed", method: "Wallet", desc: "Weekly Premium W52" },
   ],
 };
 

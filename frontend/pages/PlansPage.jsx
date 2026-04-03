@@ -19,6 +19,8 @@ const PlansPage = () => {
   const [aiPricing, setAiPricing] = useState({});
   const [bonusCoverage, setBonusCoverage] = useState({});
   const [masterPricing, setMasterPricing] = useState(null);
+  const [selectedCovers, setSelectedCovers] = useState(['Rain', 'AQI']);
+  const [customPremium, setCustomPremium] = useState(25);
 
   useEffect(() => {
     const loadData = async () => {
@@ -108,6 +110,109 @@ const PlansPage = () => {
         <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
           {activePlanId ? `Your dynamically priced coverage in ${user.city}.` : `AI-recommended based on your zone in ${user.city}, history, and pattern.`}
         </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px', marginBottom: '64px', alignItems: 'start' }}>
+        {/* Personalized Coverage Builder */}
+        <Card glow style={{ padding: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 800 }}>🛠️ Personalised Coverage Builder</h2>
+            <Badge variant="cyan">BETA</Badge>
+          </div>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+            Pick only the disruptions that affect <strong>your</strong> work. Your premium updates in real-time.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+            {[
+              { id: 'Rain', icon: '🌧️', label: 'Heavy Rain', price: 8 },
+              { id: 'AQI', icon: '🌫️', label: 'AQI Spikes', price: 5 },
+              { id: 'Traffic', icon: '🚧', label: 'Road Blocks', price: 4 },
+              { id: 'Heat', icon: '☀️', label: 'Heatwaves', price: 6 },
+              { id: 'Curfew', icon: '🚨', label: 'Shutdowns', price: 7 },
+            ].map(cover => {
+              const isSelected = selectedCovers.includes(cover.id);
+              return (
+                <button
+                  key={cover.id}
+                  onClick={() => {
+                    const next = isSelected ? selectedCovers.filter(i => i !== cover.id) : [...selectedCovers, cover.id];
+                    setSelectedCovers(next);
+                    setCustomPremium(next.reduce((sum, item) => sum + ([
+                      { id: 'Rain', p: 8 }, { id: 'AQI', p: 5 }, { id: 'Traffic', p: 4 }, { id: 'Heat', p: 6 }, { id: 'Curfew', p: 7 }
+                    ].find(i => i.id === item)?.p || 0), 10)); // 10 is base platform fee
+                  }}
+                  style={{
+                    padding: '24px 16px',
+                    borderRadius: '16px',
+                    border: isSelected ? '2px solid var(--accent-cyan)' : '1px solid var(--border)',
+                    background: isSelected ? 'rgba(37, 99, 235, 0.05)' : 'var(--bg-card)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}
+                >
+                  <span style={{ fontSize: '32px' }}>{cover.icon}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{cover.label}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>+₹{cover.price}/week</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '16px', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Custom Weekly Premium</div>
+              <div style={{ fontSize: '36px', fontWeight: 900, color: 'var(--accent-cyan)' }}>₹{customPremium}</div>
+            </div>
+            <Button variant="primary" glow disabled={selectedCovers.length === 0}>
+              Activate Custom Plan →
+            </Button>
+          </div>
+        </Card>
+
+        {/* Loyalty & Rewards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Card style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', color: 'white' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              ⭐ Trustpay Rewards
+            </h3>
+            <div style={{ fontSize: '32px', fontWeight: 900, marginBottom: '8px' }}>₹{user.rewardsBalance || 450}</div>
+            <p style={{ fontSize: '13px', opacity: 0.8, marginBottom: '20px' }}>Loyalty credits earned from safe, disruption-free work weeks.</p>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                <span>Next Milestone: ₹500</span>
+                <span>90%</span>
+              </div>
+              <div style={{ height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '3px' }}>
+                <div style={{ width: '90%', height: '100%', background: 'white', borderRadius: '3px' }} />
+              </div>
+            </div>
+            <Button variant="outline" style={{ width: '100%', borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>
+              Redeem Credits
+            </Button>
+          </Card>
+
+          <Card>
+            <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '16px' }}>LOYALTY PERKS</h4>
+            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { label: 'No-claim bonus (4 weeks)', value: '15% Cashback' },
+                { label: 'Early Adopter Status', value: 'Lvl 3 Active' },
+                { label: 'Multi-Platform Consistency', value: '+₹50 Credit' },
+              ].map((perk, i) => (
+                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>{perk.label}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}>{perk.value}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
       </div>
 
       <DynamicPricingBanner pricingData={masterPricing} />

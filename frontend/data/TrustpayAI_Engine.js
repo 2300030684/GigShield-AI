@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { TrustpayDB, TrustpayComputed } from './TrustpayData.js';
+import { h3Index } from '../utils/h3_simulator.js'; // We'll create this helper
 
 // ═══════════════════════════════════════════════════
 // FEATURE 1 — AI DYNAMIC PRICING MODEL
@@ -43,9 +44,9 @@ export const TrustpayDynamicPricing = {
   getCityRiskLevel(city, weatherData) {
     const rainfall = weatherData?.rain?.["1h"] || 0;
     const temp = weatherData?.main?.temp || 30;
+    const isHexDisrupted = weatherData?.isHexDisrupted || false;
 
-    if (rainfall > 20) return "high";
-    if (temp > 40) return "high";
+    if (isHexDisrupted || rainfall > 20 || temp > 40) return "high";
     if (rainfall > 5) return "medium";
     return "low";
   },
@@ -339,13 +340,15 @@ export const TrustpayTriggers = {
   async trigger5_LocalFloodWarning(locationData) {
     const FLOOD_PRONE = ['HITEC City', 'Kukatpally', 'Andheri West', 'T. Nagar'];
     const userZone   = TrustpayDB.currentUser?.zone || 'Kondapur';
+    const hexID      = TrustpayDB.currentUser?.currentHexID || '8a2a1072b59ffff';
     const triggered  = FLOOD_PRONE.includes(userZone) && new Date().getHours() >= 16;
     return {
       triggered,
       triggerID: 'TRIGGER_FLOOD', event: 'Local Flood Warning', severity: 'CRITICAL', icon: '!',
-      detail: `Official flood warning issued for ${userZone} district`, source: 'India WRIS Flood Alert System',
+      detail: `Official flood warning issued for ${userZone} district (Hex: ${hexID})`, source: 'India WRIS Flood Alert System',
       apiEndpoint: 'api.india-wris.gov.in/flood-alerts',
       estimatedLoss: this.estimateLoss('Flood', locationData), color: '#DC2626',
+      hexID
     };
   },
 
@@ -400,12 +403,20 @@ export const TrustpayZeroTouch = {
     const claimID = `TRP-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random() * 9000 + 1000)}`;
 
     const steps = [
-      { id: 1, name: 'Disruption Verified',    icon: '📡', detail: `${triggerData.event} confirmed via ${triggerData.source}` },
-      { id: 2, name: 'Location Auto-Detected', icon: '📍', detail: `${user.zone || 'Kondapur'}, ${user.city || 'Hyderabad'} — GPS verified` },
-      { id: 3, name: 'Earnings Impact Calc.',  icon: '📊', detail: `Est. loss ₹${estimatedLoss} · Coverage ${plan.coverageRate * 100}%` },
-      { id: 4, name: 'Fraud Check Passed',     icon: '🛡️', detail: 'Fraud score 4/100 — Clean ✅' },
-      { id: 5, name: 'Policy Coverage Applied',icon: '💳', detail: `${plan.name || 'Standard'} Plan · ₹${payout} approved` },
+      { id: 1, name: 'Active Status',    icon: '✅', detail: `Worker activity heartbeat verified via ${user.platform} API` },
+      { id: 2, name: 'H3 Zone Presence', icon: '📍', detail: `Worker GPS confirmed in Res-9 Hex: ${user.currentHexID}` },
+      { id: 3, name: 'Route Impact',    icon: '🚧', detail: `Transit delay >35% on current delivery route nodes` },
+      { id: 4, name: 'Activity Drop',   icon: '📊', detail: `Earnings velocity fell 42% below worker's baseline` },
+      { id: 5, name: 'Peer Anomaly',    icon: '🛡️', detail: `Corroborated by ${Math.floor(Math.random() * 15 + 5)} peers in same hex` },
     ];
+
+    const confidenceScore = this.weightedScoringSystem({
+      activeStatus: 1.0,
+      h3Presence: 1.0,
+      routeImpact: 0.85,
+      activityDrop: 0.78,
+      peerAnomaly: 0.92
+    });
 
     // Fixed 700ms per step — clear, predictable timing
     for (let i = 0; i < steps.length; i++) {
@@ -440,4 +451,22 @@ export const TrustpayZeroTouch = {
     TrustpayDB.claims.unshift(newClaim);
     TrustpayDB.currentUser.totalClaimsCount = (TrustpayDB.currentUser.totalClaimsCount || 0) + 1;
   },
+
+  // ── CONFIDENCE MODEL — Weighted Scoring ──
+  weightedScoringSystem(signals) {
+    const weights = {
+      activeStatus: 0.25,
+      h3Presence: 0.30,
+      routeImpact: 0.15,
+      activityDrop: 0.20,
+      peerAnomaly: 0.10
+    };
+    
+    let totalScore = 0;
+    for (const [key, value] of Object.entries(signals)) {
+      totalScore += value * (weights[key] || 0);
+    }
+    
+    return Math.round(totalScore * 100);
+  }
 };
