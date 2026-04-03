@@ -429,8 +429,8 @@ const api = {
   },
 
   // ── PLATFORM CONNECTION (NEW) ──
-  sendPlatformOTP: (platform, phone) => request('POST', '/auth/platform/send-otp', { platform, phone }),
-  verifyPlatformOTP: (platform, phone, otp) => request('POST', '/auth/platform/verify-otp', { platform, phone, otp }),
+  sendPlatformOTP: (platform, phone) => request('POST', '/login/platform/send-otp', { platform, phone }),
+  verifyPlatformOTP: (platform, phone, otp) => request('POST', '/login/platform/verify-otp', { platform, phone, otp }),
 
   // ── POLICIES ──
   getPlans: () => request('GET', '/policies/plans'),
