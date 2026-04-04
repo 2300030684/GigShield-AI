@@ -30,7 +30,8 @@ We built TrustPay to provide **instant financial protection using AI and automat
 
 ## 🏗️ System Architecture
 
-![TrustPay Architecture](./TrustPay_Pro_Architecture.png)
+<img width="1000" height="750" alt="image" src="https://github.com/user-attachments/assets/0814eb1d-a93a-4659-9acb-c80bf465dce6" />
+
 
 ---
 
@@ -75,8 +76,6 @@ We built TrustPay to provide **instant financial protection using AI and automat
 **APIs:** Weather API, AQI API
 
 ---
-
-<img width="1000" height="750" alt="image" src="https://github.com/user-attachments/assets/1708ae29-c987-4f38-bfa2-68043238c005" />
 
 ## 🧪 Key Features
 
