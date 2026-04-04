@@ -169,6 +169,12 @@ fetch("http://localhost:8080/api/register", {
   body: JSON.stringify(data)
 });
 ```
+##Demo Instructions (For Judges)
+
+To test the application easily:
+- 👤 Use any email or phone number  
+- 📱 Enter OTP: **1234**
+⚠️ Note: This is a demo version. OTP is fixed and no real OTP will be sent.
 
 ---
 
