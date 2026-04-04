@@ -197,50 +197,120 @@
   color: #1a1f36;
 }
 
-/* ── PAN REVIEW CARD ── */
+/* ── PAN REVIEW CARD (RAZORPAY STYLE) ── */
 .pan-review-card {
-  background: #1a1f36;
-  padding: 24px;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  padding: 32px;
+  border-radius: 16px;
   color: white;
   position: relative;
   overflow: hidden;
   margin-top: 24px;
-  box-shadow: 0 10px 30px rgba(26, 31, 54, 0.15);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pan-review-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.pan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.pan-gov-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pan-gov-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+.pan-gov-subtitle {
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.pan-chip {
+  width: 44px;
+  height: 34px;
+  background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+  border-radius: 6px;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.4);
+}
+
+.pan-chip::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 2px;
+}
+
+.pan-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 2;
 }
 
 .pan-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .pan-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
 }
 
 .pan-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  font-family: 'Courier New', Courier, monospace;
+  color: #f8fafc;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .pan-verified-badge {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: #10b981;
-  color: white;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
   font-size: 10px;
   font-weight: 800;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  align-self: flex-start;
 }
 
 /* ── REVIEW SUMMARY ── */

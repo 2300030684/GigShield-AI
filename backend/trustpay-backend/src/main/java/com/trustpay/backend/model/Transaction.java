@@ -25,21 +25,23 @@ public class Transaction {
     private Double amount;
 
     @Column(nullable = false)
-    private String type; // PREMIUM, PAYOUT, REWARD
+    private String transactionType; // Modified from type
 
     @Column(nullable = false)
     private String status; // COMPLETED, PENDING, FAILED
 
     private String method; // UPI, WALLET, BANK
 
+    private Boolean parametricPayout; // New field
+
     private String description;
 
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime timestamp;
+    private LocalDateTime transactionTime; // Modified from timestamp
 
     @PrePersist
     protected void onCreate() {
-        timestamp = LocalDateTime.now();
+        transactionTime = LocalDateTime.now();
         if (txnId == null) txnId = "TXN-" + System.currentTimeMillis();
     }
 }

@@ -2,6 +2,7 @@ package com.trustpay.backend.service;
 
 import com.trustpay.backend.model.DisruptionEvent;
 import com.trustpay.backend.service.DisruptionService;
+import com.trustpay.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +41,12 @@ public class WeatherScheduler {
 
             log.info("Live weather check: Rain={}mm, Temp={}C", rainfall, temp);
 
-            if (rainfall > 30.0) {
-                log.warn("CRITICAL: Heavy rainfall detected! Triggering parametric disruption.");
-                disruptionService.simulateDisruption("RAIN", lat, lng, rainfall);
+            if (rainfall > 50.0) {
+                log.warn("T1 TRIGGER: Heavy rainfall detected (>50mm)! Triggering parametric payout.");
+                disruptionService.simulateDisruptionWithDuration("RAIN", lat, lng, rainfall, 3.5); // 3.5 hrs disruption
             } else if (temp > 45.0) {
-                log.warn("CRITICAL: Heatwave detected! Triggering parametric disruption.");
-                disruptionService.simulateDisruption("HEATWAVE", lat, lng, 0.0);
+                log.warn("T2 TRIGGER: Extreme heat detected (>45C)! Triggering parametric payout.");
+                disruptionService.simulateDisruptionWithDuration("HEATWAVE", lat, lng, 0.0, 4.0); // 4 hrs disruption
             }
         } catch (Exception e) {
             log.error("Failed to ingest real-time weather: {}", e.getMessage());

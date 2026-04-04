@@ -19,7 +19,7 @@ const SettingsProfile = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/auth');
+    navigate('/login');
   };
 
   useEffect(() => {
@@ -86,6 +86,10 @@ const SettingsProfile = () => {
          <div>
             <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>City</label>
             <input type="text" name="city" className="input-field" value={formData.city || ''} onChange={handleInputChange} />
+         </div>
+         <div>
+            <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>PAN Number</label>
+            <input type="text" name="panNumber" className="input-field" value={formData.panNumber || ''} onChange={handleInputChange} style={{ fontFamily: 'monospace', letterSpacing: '1px' }} />
          </div>
          <div style={{ gridColumn: 'span 2', background: 'var(--accent-cyan-dim)', padding: '16px', borderRadius: '8px', border: '1px solid var(--accent-cyan-dim)', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <CheckCircle color="var(--accent-green)" size={20} />

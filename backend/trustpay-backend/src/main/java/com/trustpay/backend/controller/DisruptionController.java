@@ -22,7 +22,7 @@ public class DisruptionController {
     }
 
     @PostMapping("/simulate")
-    public ResponseEntity<DisruptionEvent> simulate(
+    public ResponseEntity<String> simulate(
             @RequestBody Map<String, Object> payload) {
         
         String type = (String) payload.getOrDefault("type", "RAIN");
@@ -30,6 +30,7 @@ public class DisruptionController {
         double lng = (double) payload.getOrDefault("lng", 78.3572);
         double intensity = (double) payload.getOrDefault("intensity", 45.0);
 
-        return ResponseEntity.ok(disruptionService.simulateDisruption(type, lat, lng, intensity));
+        disruptionService.simulateDisruption(type, lat, lng, intensity);
+        return ResponseEntity.ok("Disruption simulated successfully");
     }
 }

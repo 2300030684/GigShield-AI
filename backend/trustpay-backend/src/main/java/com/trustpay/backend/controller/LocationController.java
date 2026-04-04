@@ -3,7 +3,7 @@ package com.trustpay.backend.controller;
 import com.trustpay.backend.model.User;
 import com.trustpay.backend.repository.UserRepository;
 import com.trustpay.backend.service.GeocodingService;
-import com.trustpay.backend.service.GeospatialService;
+import com.trustpay.backend.service.H3GeoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class LocationController {
     private static final Logger log = LoggerFactory.getLogger(LocationController.class);
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
-    private final GeospatialService geospatialService;
+    private final H3GeoService h3GeoService;
 
     @PostMapping
     public ResponseEntity<?> updateLocation(@RequestBody Map<String, Double> coords) {
@@ -42,7 +42,7 @@ public class LocationController {
                     user.setLongitude(lng);
 
                     // 2. Map to H3 Grid
-                    String h3Index = geospatialService.latLngToH3(lat, lng);
+                    String h3Index = h3GeoService.convertGpsToH3(lat, lng, 9);
                     user.setCurrentH3Index(h3Index);
 
                     userRepository.save(user);

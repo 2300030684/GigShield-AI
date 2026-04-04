@@ -27,8 +27,10 @@ public class Claim {
     @Column(nullable = false)
     private String h3Index;
 
+    private Long disruptionEventId; // Matches DisruptionEvent id
+
     private Double estimatedLoss;
-    private Double approvedPayout;
+    private Double payoutAmount; // Modified from approvedPayout
 
     // ── 5-SIGNAL AI VERIFICATION DATA ──
     private String activeStatusSignal; // VERIFIED, FAILED
@@ -37,8 +39,8 @@ public class Claim {
     private Double activityDropSignal; // % drop vs baseline
     private String peerAnomalySignal; // CORROBORATED, OUTLIER
 
-    private Integer confidenceScore; // 0 - 100
-    private String status; // APPROVED, REJECTED, REVIEW, PAID
+    private Double aiConfidenceScore; // 0.0 - 100.0 (Modified from confidenceScore)
+    private String claimStatus; // APPROVED, REJECTED, REVIEW, PAID (Modified from status)
 
     private String upiTxnId;
     private LocalDateTime processingTime;

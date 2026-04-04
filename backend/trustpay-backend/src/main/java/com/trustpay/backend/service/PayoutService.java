@@ -1,84 +1,76 @@
 package com.trustpay.backend.service;
 
-import com.trustpay.backend.model.Claim;
-import com.trustpay.backend.model.DisruptionEvent;
-import com.trustpay.backend.model.WorkerZoneLog;
-import com.trustpay.backend.repository.ClaimRepository;
-import com.trustpay.backend.repository.WorkerZoneLogRepository;
+import com.trustpay.backend.model.*;
+import com.trustpay.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PayoutService {
 
     private final ClaimRepository claimRepository;
-    private final WorkerZoneLogRepository zoneLogRepository;
-    private final GeospatialService geospatialService;
+    private final TransactionRepository transactionRepository;
+    private final PolicyRepository policyRepository;
+    private final UserRepository userRepository;
+    private final DisruptionEventRepository disruptionEventRepository;
 
-    /**
-     * CORE: Evaluates a potential claim using the 5-signal AI verification system
-     */
-    public Claim evaluateClaim(String workerId, DisruptionEvent event) {
-        Optional<WorkerZoneLog> latestLog = zoneLogRepository.findLatestByWorkerId(workerId);
+    public void processPayoutForClaim(Claim claim) {
+        log.info("Processing payout for Claim {}", claim.getClaimId());
+        
+        User worker = userRepository.findById(Long.parseLong(claim.getWorkerId()))
+                .orElseThrow(() -> new RuntimeException("Worker not found"));
+        
+        Optional<Policy> policyOpt = policyRepository.findByWorkerId(worker.getWorkerId())
+                .stream().filter(p -> "ACTIVE".equals(p.getStatus())).findFirst();
 
-        // -- Signal 1: Active Status (Mock check) --
-        String activeStatus = latestLog.isPresent() ? "VERIFIED" : "FAILED";
+        double baseHourlyRate = worker.getBaseHourlyRate() != null ? worker.getBaseHourlyRate() : 120.0;
+        double coverageMultiplier = 1.0;
+        double maxCap = 5000.0;
 
-        // -- Signal 2: H3 Zone Presence --
-        String h3Presence = "MISMATCH";
-        if (latestLog.isPresent() && latestLog.get().getH3Index().equals(event.getH3Index())) {
-            h3Presence = "MATCHED";
+        if (policyOpt.isPresent()) {
+            Policy p = policyOpt.get();
+            coverageMultiplier = p.getCoverageMultiplier() != null ? p.getCoverageMultiplier() : 1.0;
+            maxCap = p.getMaxCoverage() != null ? p.getMaxCoverage() : 5000.0;
         }
 
-        // -- Signal 3: Route Impact --
-        double routeImpact = Math.random() * 0.4 + 0.6; // Mock 60-100% impact
+        // Fetch disruption duration
+        double disruptionHours = 1.0;
+        Optional<DisruptionEvent> event = disruptionEventRepository.findById(claim.getDisruptionEventId());
+        if (event.isPresent()) {
+            disruptionHours = event.get().getDurationHours() != null ? event.get().getDurationHours() : 1.0;
+        }
 
-        // -- Signal 4: Activity Drop --
-        double activityDrop = 0.42; // Mock 42% drop vs baseline
+        // Formula: Payout = (Hours * Rate) * Multiplier
+        double calculatedPayout = (disruptionHours * baseHourlyRate) * coverageMultiplier;
+        
+        // Apply Cap
+        double finalPayout = Math.min(calculatedPayout, maxCap);
+        
+        claim.setPayoutAmount(Math.round(finalPayout * 100.0) / 100.0);
+        claim.setClaimStatus("PAID");
+        claim.setUpiTxnId("TXN-UPI-" + System.currentTimeMillis());
 
-        // -- Signal 5: Peer Anomaly --
-        String peerAnomaly = "CORROBORATED";
+        claimRepository.save(claim);
 
-        // Calculate Confidence Score
-        int confidence = calculateConfidence(activeStatus, h3Presence, routeImpact, activityDrop, peerAnomaly);
+        log.info("Calculations: ({} hrs * {} rate) * {} multiplier = {} (Capped at {})", 
+                disruptionHours, baseHourlyRate, coverageMultiplier, calculatedPayout, finalPayout);
 
-        Claim claim = Claim.builder()
-                .workerId(workerId)
-                .eventType(event.getType())
-                .h3Index(event.getH3Index())
-                .estimatedLoss(450.0)
-                .approvedPayout(338.0)
-                .activeStatusSignal(activeStatus)
-                .h3PresenceSignal(h3Presence)
-                .routeImpactScore(routeImpact)
-                .activityDropSignal(activityDrop)
-                .peerAnomalySignal(peerAnomaly)
-                .confidenceScore(confidence)
-                .status(confidence >= 85 ? "APPROVED" : "REVIEW")
-                .processingTime(LocalDateTime.now())
+        // Store transaction
+        Transaction txn = Transaction.builder()
+                .workerId(claim.getWorkerId())
+                .amount(finalPayout)
+                .transactionType("PAYOUT")
+                .status("COMPLETED")
+                .method("UPI")
+                .description("Parametric payout for " + claim.getEventType() + " (" + disruptionHours + " hrs)")
+                .parametricPayout(true)
                 .build();
-
-        return claimRepository.save(claim);
-    }
-
-    private int calculateConfidence(String active, String h3, double route, double drop, String peer) {
-        double score = 0;
-        if (active.equals("VERIFIED")) score += 25;
-        if (h3.equals("MATCHED")) score += 30;
-        score += route * 15;
-        score += drop * 20;
-        if (peer.equals("CORROBORATED")) score += 10;
-        return (int) Math.round(score);
-    }
-
-    public Claim processPayout(String claimId) {
-        return claimRepository.findByClaimId(claimId).map(claim -> {
-            claim.setStatus("PAID");
-            claim.setUpiTxnId("TXN-AUTO-" + System.currentTimeMillis());
-            return claimRepository.save(claim);
-        }).orElseThrow(() -> new RuntimeException("Claim not found"));
+                
+        transactionRepository.save(txn);
     }
 }

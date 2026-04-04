@@ -158,7 +158,7 @@ const api = {
 
   // ── POLICIES ──
   getPlans: () => request('GET', '/policies/plans'),
-  activatePlan: (planType, upiID) => request('POST', '/policies/activate', { planType, upiID }),
+  activatePlan: (planType, upiID, customData = {}) => request('POST', '/policies/activate', { plan: planType, upiID, ...customData }),
   confirmPayment: (data) => request('POST', '/policies/payment-success', data),
   getMyPolicy: () => request('GET', '/policies/my-policy'),
   cancelPolicy: () => request('POST', '/policies/cancel'),

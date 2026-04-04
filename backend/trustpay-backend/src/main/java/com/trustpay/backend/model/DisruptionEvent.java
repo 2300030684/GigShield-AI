@@ -19,15 +19,18 @@ public class DisruptionEvent {
     private Long id;
 
     @Column(nullable = false)
-    private String type; // RAIN, AQI, TRAFFIC, SHUTDOWN
+    private String eventType; // RAIN, AQI, TRAFFIC, SHUTDOWN
 
     @Column(nullable = false)
     private String h3Index; // Resolution 9 hex index
 
-    private Double intensity; // mm/hr or AQI value
+    private Double intensityValue; // mm/hr or AQI value
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    
+    @Builder.Default
+    private Double durationHours = 1.0; 
 
     @Builder.Default
     private Boolean isActive = true;

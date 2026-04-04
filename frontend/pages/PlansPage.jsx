@@ -66,13 +66,30 @@ const PlansPage = () => {
 
   const handleSelectPlan = async (planId) => {
     try {
-      await api.updateProfile({ plan: planId });
+      await api.activatePlan(planId, user.upiID);
       const meRes = await api.getMe();
       setUser(meRes.user);
       alert(`Successfully switched to ${planId.toUpperCase()} plan.`);
     } catch (e) {
       console.error(e);
       alert('Failed to update plan.');
+    }
+  };
+
+  const handleActivateCustomPlan = async () => {
+    try {
+      const customData = {
+        weeklyPremium: customPremium,
+        maxCoverage: customPremium * 140, // Example multiplier for custom plans
+        events: selectedCovers
+      };
+      await api.activatePlan('custom', user.upiID, customData);
+      const meRes = await api.getMe();
+      setUser(meRes.user);
+      alert('Custom Plan activated successfully!');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to activate custom plan.');
     }
   };
 
@@ -168,7 +185,12 @@ const PlansPage = () => {
               <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Custom Weekly Premium</div>
               <div style={{ fontSize: '36px', fontWeight: 900, color: 'var(--accent-cyan)' }}>₹{customPremium}</div>
             </div>
-            <Button variant="primary" glow disabled={selectedCovers.length === 0}>
+            <Button 
+                variant="primary" 
+                glow 
+                disabled={selectedCovers.length === 0}
+                onClick={handleActivateCustomPlan}
+            >
               Activate Custom Plan →
             </Button>
           </div>

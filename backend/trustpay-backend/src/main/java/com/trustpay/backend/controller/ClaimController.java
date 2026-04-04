@@ -1,42 +1,89 @@
 package com.trustpay.backend.controller;
 
 import com.trustpay.backend.model.Claim;
-import com.trustpay.backend.model.DisruptionEvent;
-import com.trustpay.backend.repository.DisruptionEventRepository;
+import com.trustpay.backend.model.User;
+import com.trustpay.backend.repository.ClaimRepository;
+import com.trustpay.backend.repository.UserRepository;
+import com.trustpay.backend.service.ClaimTriggerService;
 import com.trustpay.backend.service.PayoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/claim")
+@RequestMapping("/api/claims")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ClaimController {
 
+    private final ClaimTriggerService claimTriggerService;
     private final PayoutService payoutService;
-    private final DisruptionEventRepository eventRepository;
+    private final ClaimRepository claimRepository;
+    private final UserRepository userRepository;
 
-    @PostMapping("/evaluate")
-    public ResponseEntity<Claim> evaluate(
-            @RequestBody Map<String, Object> payload) {
-        
-        String workerId = (String) payload.get("workerId");
-        Long eventId = ((Number) payload.get("eventId")).longValue();
-
-        DisruptionEvent event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-
-        return ResponseEntity.ok(payoutService.evaluateClaim(workerId, event));
+    @GetMapping("/history")
+    public ResponseEntity<Map<String, Object>> getHistory() {
+        User user = getCurrentUser();
+        List<Claim> claims = claimRepository.findByWorkerIdOrderByCreatedAtDesc(user.getWorkerId());
+        return ResponseEntity.ok(Map.of("claims", claims));
     }
 
-    @PostMapping("/payout")
-    public ResponseEntity<Claim> payout(
-            @RequestBody Map<String, String> payload) {
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        User user = getCurrentUser();
+        List<Claim> claims = claimRepository.findByWorkerId(user.getWorkerId());
         
-        String claimId = payload.get("claimId");
-        return ResponseEntity.ok(payoutService.processPayout(claimId));
+        double totalPaid = claims.stream()
+                .filter(c -> "PAID".equalsIgnoreCase(c.getClaimStatus()) || "APPROVED".equalsIgnoreCase(c.getClaimStatus()))
+                .mapToDouble(c -> c.getPayoutAmount() != null ? c.getPayoutAmount() : 0.0)
+                .sum();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalPaid", totalPaid);
+        stats.put("totalClaims", claims.size());
+        stats.put("thisWeekProtected", totalPaid * 0.4); // Mocked weekly split
+        stats.put("thisWeekEarnings", 4500.0);
+        stats.put("claimSuccessRate", 98);
+        stats.put("recentClaims", claims.stream().limit(5).collect(Collectors.toList()));
+        
+        return ResponseEntity.ok(stats);
+    }
+
+    @PostMapping("/initiate")
+    public ResponseEntity<Claim> initiateClaim(@RequestBody Map<String, Object> payload) {
+        User user = getCurrentUser();
+        Claim claim = Claim.builder()
+                .workerId(user.getWorkerId())
+                .eventType((String) payload.getOrDefault("event", "Rain"))
+                .h3Index(user.getZone())
+                .claimStatus("PENDING")
+                .estimatedLoss(250.0)
+                .aiConfidenceScore(85.0)
+                .build();
+        
+        return ResponseEntity.ok(claimRepository.save(claim));
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<Claim> confirmClaim(@RequestBody Map<String, String> payload) {
+        String claimId = payload.get("claimID");
+        Claim claim = claimRepository.findByClaimId(claimId).orElseThrow();
+        claim.setClaimStatus("APPROVED");
+        claim.setPayoutAmount(claim.getEstimatedLoss() != null ? claim.getEstimatedLoss() : 150.0);
+        
+        // Trigger payout logic
+        payoutService.processPayoutForClaim(claim);
+        
+        return ResponseEntity.ok(claimRepository.save(claim));
+    }
+
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByUsername(auth.getName()).orElseThrow();
     }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore, findUser, updatePassword } from "../store/authStore";
+import { useAuthStore, updatePassword } from "../store/authStore";
 import { ShieldCheck, Circle, AlertCircle, Shield } from "lucide-react";
 import api from "../services/api.js";
 import "./Auth.css";
@@ -55,23 +55,16 @@ export default function AuthPage() {
     setLoading(true);
 
     if (step === 1) {
-      // Login Step 1: Check User
       setTimeout(() => {
-        const user = findUser(formData.identifier);
-        if (user) {
-          setStep(2);
-        } else {
-          setError("No account found with this identifier. Please register first.");
-        }
+        setStep(2);
         setLoading(false);
-      }, 800);
+      }, 400);
     } 
     else if (step === 2) {
-      // Login Step 2: Check Password
       try {
         const data = await api.login({
           identifier: formData.identifier,
-          email: formData.identifier, // sending both just in case backend expects email
+          email: formData.identifier,
           password: formData.password
         });
 
@@ -92,19 +85,12 @@ export default function AuthPage() {
       }
     }
     else if (step === 10) {
-      // Forgot Step 1: Check ID
       setTimeout(() => {
-        const user = findUser(formData.identifier);
-        if (user) {
-          setStep(11);
-        } else {
-          setError("Identifier not found.");
-        }
+        setStep(11);
         setLoading(false);
-      }, 800);
+      }, 600);
     }
     else if (step === 11) {
-      // Forgot Step 2: Verify OTP
       const enteredOtp = otp.join("");
       setTimeout(() => {
         if (enteredOtp === "1234") {
@@ -116,7 +102,6 @@ export default function AuthPage() {
       }, 800);
     }
     else if (step === 12) {
-      // Forgot Step 3: Reset
       setTimeout(() => {
         if (updatePassword(formData.identifier, formData.newPassword)) {
           setStep(2);
@@ -212,114 +197,7 @@ export default function AuthPage() {
               </>
             )}
 
-            {step === 2 && (
-              <>
-                <div className="auth-edit-hint">
-                  <span className="current-id">{formData.identifier}</span>
-                  <button onClick={resetFlow} className="edit-btn">Change</button>
-                </div>
-                <h2 className="auth-main-title">Enter your password</h2>
-                <form onSubmit={handleAuth}>
-                  <div className="input-group">
-                    <div className="auth-input-wrapper">
-                      <input 
-                        type={showPassword ? "text" : "password"} className="auth-input" placeholder="Password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        required autoFocus
-                      />
-                      <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                        <span style={{ fontSize: '12px' }}>{showPassword ? "HIDE" : "SHOW"}</span>
-                      </button>
-                    </div>
-                  </div>
-                  {error && <p style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px' }}>{error}</p>}
-                  <div className="auth-forgot">
-                    <button type="button" onClick={() => setStep(10)} className="edit-btn">Forgot Password?</button>
-                  </div>
-                  <button type="submit" className="auth-primary-btn" disabled={loading || !formData.password}>
-                    {loading ? "Verifying..." : "Login"}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {step === 10 && (
-              <>
-                <h2 className="auth-main-title">Reset your password</h2>
-                <form onSubmit={handleAuth}>
-                  <div className="input-group">
-                    <input 
-                      type="text" className="auth-input" placeholder="Email or Phone Number"
-                      value={formData.identifier}
-                      onChange={(e) => setFormData({...formData, identifier: e.target.value})}
-                      required
-                    />
-                  </div>
-                  {error && <p style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px' }}>{error}</p>}
-                  <button type="submit" className="auth-primary-btn" disabled={loading || !formData.identifier}>
-                    {loading ? "Sending OTP..." : "Get OTP"}
-                  </button>
-                  <button type="button" onClick={resetFlow} className="edit-btn" style={{ marginTop: '16px', width: '100%' }}>Back to Login</button>
-                </form>
-              </>
-            )}
-
-            {step === 11 && (
-              <>
-                <h2 className="auth-main-title">Verify OTP</h2>
-                <div className="auth-edit-hint">
-                  <span className="current-id">{formData.identifier}</span>
-                </div>
-                <div className="otp-input-container">
-                  {otp.map((digit, i) => (
-                    <input key={i} ref={otpRefs[i]} type="text" className="otp-box" value={digit}
-                      onChange={(e) => handleOtpChange(i, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                      maxLength={1} autoFocus={i === 0}
-                    />
-                  ))}
-                </div>
-                {error && <p style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px', textAlign: 'center' }}>{error}</p>}
-                <button onClick={handleAuth} className="auth-primary-btn" disabled={loading || otp.some(d => !d)}>
-                  {loading ? "Verifying..." : "Verify OTP"}
-                </button>
-              </>
-            )}
-
-            {step === 12 && (
-              <>
-                <h2 className="auth-main-title">Create new password</h2>
-                <form onSubmit={handleAuth}>
-                  <div className="input-group">
-                    <div className="auth-input-wrapper">
-                      <input 
-                        type={showPassword ? "text" : "password"} className="auth-input" placeholder="New Password"
-                        value={formData.newPassword}
-                        onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-                        required autoFocus
-                      />
-                      <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </button>
-                    </div>
-                    <div className="password-requirements">
-                      {requirements.map((req) => {
-                        const isValid = validateReq(req, formData.newPassword);
-                        return (
-                          <div key={req.id} className={`requirement-item ${isValid ? 'valid' : 'invalid'}`}>
-                            {isValid ? <ShieldCheck size={14} /> : <div className="circle-placeholder" />}
-                            <span>{req.text}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <button type="submit" className="auth-primary-btn" disabled={loading || !isNewPassValid}>
-                    {loading ? "Resetting..." : "Reset & Login"}
-                  </button>
-                </form>
-              </>
-            )}
+            {/* ...existing code for other steps... */}
 
             <p className="auth-legal" style={{ marginTop: '32px' }}>
               By continuing, you agree to our <a href="#">privacy policy</a> and <a href="#">terms of use</a>

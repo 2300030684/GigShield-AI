@@ -87,30 +87,44 @@ export default function OnboardingPage() {
     }
     else if (step === 3.7) {
       setIsSubmitting(true);
-      setTimeout(() => {
-        // Persist onboarding data to localStorage so dashboard can read it
-        const savedUser = JSON.parse(localStorage.getItem('tp_user') || '{}');
-        const updatedUser = {
-          ...savedUser,
-          name: formData.fullName,
-          platform: formData.platforms[0] || savedUser.platform || 'Swiggy',
-          platforms: formData.platforms,
-          panNumber: formData.panNumber,
-          phone: formData.phone,
-          payoutMethod: formData.payoutMethod,
-          upiID: formData.payoutMethod === 'upi' ? formData.upiId : savedUser.upiID,
-          bankDetails: formData.payoutMethod === 'bank' ? formData.bankDetails : savedUser.bankDetails,
-          isOnboardingComplete: true,
-          plan: savedUser.plan || 'standard',
-          city: savedUser.city || 'Hyderabad',
-          zone: savedUser.zone || 'Kondapur',
-          vehicleType: savedUser.vehicleType || '2-Wheeler',
-          protectionScore: savedUser.protectionScore || 76,
-        };
-        localStorage.setItem('tp_user', JSON.stringify(updatedUser));
-        completeOnboarding();
-        navigate('/dashboard');
-      }, 2500);
+      // Create a submission payload with all the collected data
+      const submissionData = {
+        name: formData.fullName,
+        platform: formData.platforms[0] || 'Swiggy',
+        panNumber: formData.panNumber,
+        phone: formData.phone,
+        isOnboardingComplete: true,
+        upiID: formData.payoutMethod === 'upi' ? formData.upiId : '',
+      };
+
+      import('../services/api.js').then(async (m) => {
+        const api = m.default;
+        try {
+          await api.updateProfile(submissionData);
+          // Persist onboarding data to localStorage so dashboard can read it
+          const savedUser = JSON.parse(localStorage.getItem('tp_user') || '{}');
+          const updatedUser = {
+            ...savedUser,
+            ...submissionData,
+            platforms: formData.platforms,
+            payoutMethod: formData.payoutMethod,
+            bankDetails: formData.payoutMethod === 'bank' ? formData.bankDetails : savedUser.bankDetails,
+            isOnboardingComplete: true,
+            plan: savedUser.plan || 'standard',
+            city: savedUser.city || 'Hyderabad',
+            zone: savedUser.zone || 'Kondapur',
+            vehicleType: savedUser.vehicleType || '2-Wheeler',
+            protectionScore: savedUser.protectionScore || 76,
+          };
+          localStorage.setItem('tp_user', JSON.stringify(updatedUser));
+          completeOnboarding();
+          navigate('/dashboard');
+        } catch (err) {
+          console.error("Failed to save onboarding data:", err);
+          alert("We couldn't save your details. Please try again.");
+          setIsSubmitting(false);
+        }
+      });
     }
   };
 
@@ -262,16 +276,25 @@ export default function OnboardingPage() {
               <div className="onboarding-step-content fade-in">
                 <h1 className="onboarding-step-title">Review your PAN details</h1>
                 <div className="pan-review-card">
-                  <div className="pan-row">
-                    <span className="pan-label">NAME AS PER PAN</span>
-                    <span className="pan-value">{formData.panName}</span>
+                  <div className="pan-header">
+                    <div className="pan-gov-header">
+                      <span className="pan-gov-title">Income Tax Department</span>
+                      <span className="pan-gov-subtitle">Government of India</span>
+                    </div>
+                    <div className="pan-chip"></div>
                   </div>
-                  <div className="pan-row" style={{ marginTop: '16px' }}>
-                    <span className="pan-label">PAN NUMBER</span>
-                    <span className="pan-value">{formData.panNumber}</span>
+                  <div className="pan-body">
+                    <div className="pan-row">
+                      <span className="pan-label">NAME AS PER PAN</span>
+                      <span className="pan-value">{formData.panName}</span>
+                    </div>
+                    <div className="pan-row">
+                      <span className="pan-label">PAN NUMBER</span>
+                      <span className="pan-value">{formData.panNumber}</span>
+                    </div>
                   </div>
                   <div className="pan-verified-badge">
-                    <ShieldCheck size={14} /> VERIFIED
+                    <ShieldCheck size={14} /> VERIFIED BY TRUSTPAY AI
                   </div>
                 </div>
                 <p style={{ marginTop: '24px', fontSize: '13px', color: '#697386' }}>

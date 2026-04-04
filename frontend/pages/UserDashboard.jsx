@@ -61,6 +61,11 @@ const UserDashboard = () => {
         setPolicy(meRes.policy);
         setClaimStats(statsRes);
         setWeeklyData(forecastRes.forecast || []);
+
+        // ── REDIRECT TO ONBOARDING IF NOT COMPLETE ──
+        if (meRes.user && meRes.user.isOnboardingComplete === false) {
+           navigate('/onboarding');
+        }
       } catch (err) {
         console.error("Dashboard load failed:", err);
         setError(err.message);

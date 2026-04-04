@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuthStore, registerUser } from "../store/authStore";
+import { useAuthStore } from "../store/authStore";
 import { ShieldCheck, Circle, Eye, EyeOff, Shield } from "lucide-react";
+import api from "../services/api.js";
 import "./Auth.css";
 
 export default function RegisterPage() {
@@ -70,17 +71,30 @@ export default function RegisterPage() {
       }, 800);
     } else if (step === 3) {
       // Step 3 -> Login: Complete Registration
-      registerUser(formData); // Save to mock DB
-      
-      setTimeout(() => {
-        login({ 
-          id: "user_" + Date.now(), 
-          name: formData.name, 
-          email: formData.identifier.includes("@") ? formData.identifier : "newuser@example.com",
-          activePlan: "none" 
-        }, "mock_token_" + Date.now());
+      setLoading(true);
+      try {
+        const data = await api.register({
+          name: formData.name,
+          username: formData.identifier,
+          email: formData.identifier.includes("@") ? formData.identifier : `${formData.name.toLowerCase().replace(/\s/g, '')}@trustpay.ai`,
+          password: formData.password
+        });
+
+        if (data) {
+          login({ 
+            id: data.id || data.user?.id || "user_" + Date.now(), 
+            name: data.name || data.user?.name || formData.name, 
+            email: data.email || data.user?.email || formData.identifier,
+            activePlan: (data.activePlan || data.user?.activePlan || "none"),
+            isOnboardingComplete: (data.isOnboardingComplete || data.user?.isOnboardingComplete || false)
+          }, data.token || "real_token_" + Date.now());
+        }
+      } catch (err) {
+        console.error("Registration failed:", err);
+        alert("Registration failed. This account may already exist.");
+      } finally {
         setLoading(false);
-      }, 1200);
+      }
     }
   };
 

@@ -2,7 +2,7 @@ package com.trustpay.backend.controller;
 
 import com.trustpay.backend.model.WorkerZoneLog;
 import com.trustpay.backend.repository.WorkerZoneLogRepository;
-import com.trustpay.backend.service.GeospatialService;
+import com.trustpay.backend.service.H3GeoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +15,9 @@ import java.util.Map;
 public class WorkerController {
 
     private final WorkerZoneLogRepository repository;
-    private final GeospatialService geospatialService;
+    private final H3GeoService h3GeoService;
 
-    @PostMapping("/location")
+    @PostMapping("/zone")
     public ResponseEntity<WorkerZoneLog> updateLocation(
             @RequestBody Map<String, Object> payload) {
         
@@ -27,7 +27,7 @@ public class WorkerController {
         String activity = (String) payload.getOrDefault("activity", "ACTIVE");
 
         // Convert GPS to H3 Res 9 (Street Level)
-        String h3Index = geospatialService.latLngToH3(lat, lng, 9);
+        String h3Index = h3GeoService.convertGpsToH3(lat, lng, 9);
 
         WorkerZoneLog log = WorkerZoneLog.builder()
                 .workerId(workerId)
@@ -44,7 +44,7 @@ public class WorkerController {
     public ResponseEntity<Map<String, Object>> getZone(
             @RequestParam double lat, @RequestParam double lng) {
         
-        String h3Index = geospatialService.latLngToH3(lat, lng, 9);
+        String h3Index = h3GeoService.convertGpsToH3(lat, lng, 9);
         return ResponseEntity.ok(Map.of("h3Index", h3Index, "resolution", 9));
     }
 }

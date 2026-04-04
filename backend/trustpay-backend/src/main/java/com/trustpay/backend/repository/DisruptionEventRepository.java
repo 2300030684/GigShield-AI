@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface DisruptionEventRepository extends JpaRepository<DisruptionEvent, Long> {
     List<DisruptionEvent> findByH3IndexAndIsActiveTrue(String h3Index);
     List<DisruptionEvent> findByIsActiveTrue();
-    Optional<DisruptionEvent> findByTypeAndH3IndexAndIsActiveTrue(String type, String h3Index);
+    Optional<DisruptionEvent> findByEventTypeAndH3IndexAndIsActiveTrue(String eventType, String h3Index);
 }
