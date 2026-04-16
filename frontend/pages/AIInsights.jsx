@@ -4,6 +4,7 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Activity, Clock, MapPin, TrendingUp, CloudRain, Map, AlertTriangle, Loader2 } from 'lucide-react';
+import EnvironmentalMaps from '../components/EnvironmentalMaps';
 import api from '../services/api.js';
 
 const AIInsights = () => {
@@ -12,6 +13,9 @@ const AIInsights = () => {
   const [forecastData, setForecastData] = useState([]);
   const [hourlyRisk, setHourlyRisk] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Default coordinates for maps (e.g., Hyderabad or user city)
+  const cityCoords = { lat: 17.3850, lng: 78.4867 }; // Default Hyderabad
 
   useEffect(() => {
     const loadData = async () => {
@@ -195,51 +199,7 @@ const AIInsights = () => {
       </div>
 
       <h3 style={{ fontSize: '18px', margin: '48px 0 24px' }}>Dynamic Risk Heatmap — {user.city}</h3>
-      <Card style={{ height: '400px', padding: 0, overflow: 'hidden', position: 'relative', border: '1px solid var(--border)' }}>
-         <div style={{ position: 'absolute', top: 0, right: 0, padding: '20px', zIndex: 10 }}>
-            <Card style={{ padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-               <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>AI LEGEND</div>
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '2px', background: 'rgba(0, 255, 156, 0.4)' }}></div> Low Risk Zone
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '2px', background: 'rgba(255, 140, 66, 0.4)' }}></div> Moderate Warning
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '2px', background: 'rgba(255, 77, 106, 0.4)' }}></div> Active Disruption
-                  </div>
-               </div>
-            </Card>
-         </div>
-         
-         <div style={{ width: '100%', height: '100%', display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gridTemplateRows: 'repeat(8, 1fr)', gap: '4px', padding: '20px', background: 'var(--bg-secondary)' }}>
-            {[...Array(96)].map((_, i) => {
-              const types = [0, 1, 2, 0, 0, 1, 0, 2, 0, 0, 1, 0];
-              const colors = ['rgba(0, 255, 156, 0.1)', 'rgba(255, 140, 66, 0.1)', 'rgba(255, 77, 106, 0.1)'];
-              const borderColors = ['var(--accent-green)', 'var(--accent-orange)', 'var(--accent-red)'];
-              const type = types[i % types.length];
-              const isUserZone = i === 42;
-              
-              return (
-                <div key={i} style={{ 
-                  background: colors[type], 
-                  border: isUserZone ? '2px solid var(--accent-cyan)' : `1px solid ${borderColors[type]}22`,
-                  borderRadius: '4px',
-                  position: 'relative',
-                  transition: 'transform 0.2s',
-                  cursor: 'pointer'
-                }} className="map-cell">
-                   {isUserZone && (
-                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 10px var(--accent-cyan)' }}></div>
-                      </div>
-                   )}
-                </div>
-              );
-            })}
-         </div>
-      </Card>
+      <EnvironmentalMaps city={user.city} cityCoords={cityCoords} />
     </div>
   );
 };

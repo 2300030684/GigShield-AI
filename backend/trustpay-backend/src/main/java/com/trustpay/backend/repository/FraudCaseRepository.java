@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface FraudCaseRepository extends JpaRepository<FraudCase, Long> {
     List<FraudCase> findByStatus(String status);
+    long countByReason(String reason);
 }

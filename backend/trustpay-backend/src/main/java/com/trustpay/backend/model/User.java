@@ -29,6 +29,7 @@ public class User {
 
     private String workerId; // Swiggy/Zomato ID
     private String status; // ACTIVE, BLOCKED
+    private String otp;
 
     // ── GEOLOCATION DATA ──
     private Double latitude;

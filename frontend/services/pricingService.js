@@ -39,7 +39,7 @@ export const calculateAIPrice = (city) => {
   };
 
   const calculatedPrice = Math.round(factor.basePrice * factor.trafficRisk * factor.weatherRisk);
-  
+
   let riskLevel = "Low";
   if (calculatedPrice > 55) riskLevel = "High";
   else if (calculatedPrice > 40) riskLevel = "Moderate";

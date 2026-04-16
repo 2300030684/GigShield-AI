@@ -28,6 +28,14 @@ public class AuthController {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_WORKER");
+        
+        // ── SIMULATED OTP LOGIC ──
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        System.out.println("========================================");
+        System.out.println("TRUSTPAY OTP FOR " + user.getUsername() + ": " + otp);
+        System.out.println("========================================");
+        user.setOtp(otp); // Assuming User model has a String otp field
+
         return ResponseEntity.ok(userRepository.save(user));
     }
 

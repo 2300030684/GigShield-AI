@@ -8,6 +8,7 @@ import com.trustpay.backend.service.ClaimTriggerService;
 import com.trustpay.backend.service.PayoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import java.time.LocalDateTime;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -43,12 +44,20 @@ public class ClaimController {
                 .mapToDouble(c -> c.getPayoutAmount() != null ? c.getPayoutAmount() : 0.0)
                 .sum();
 
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        double thisWeekProtected = claims.stream()
+                .filter(c -> c.getCreatedAt() != null && c.getCreatedAt().isAfter(oneWeekAgo))
+                .filter(c -> "PAID".equalsIgnoreCase(c.getClaimStatus()) || "APPROVED".equalsIgnoreCase(c.getClaimStatus()))
+                .mapToDouble(c -> c.getPayoutAmount() != null ? c.getPayoutAmount() : 0.0)
+                .sum();
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalPaid", totalPaid);
         stats.put("totalClaims", claims.size());
-        stats.put("thisWeekProtected", totalPaid * 0.4); // Mocked weekly split
-        stats.put("thisWeekEarnings", 4500.0);
-        stats.put("claimSuccessRate", 98);
+        stats.put("thisWeekProtected", thisWeekProtected);
+        stats.put("thisWeekEarnings", 4500.0); // Would need income log repo
+        stats.put("claimSuccessRate", claims.isEmpty() ? 100 : 
+            (int)(claims.stream().filter(c -> !"REJECTED".equalsIgnoreCase(c.getClaimStatus())).count() * 100 / claims.size()));
         stats.put("recentClaims", claims.stream().limit(5).collect(Collectors.toList()));
         
         return ResponseEntity.ok(stats);
