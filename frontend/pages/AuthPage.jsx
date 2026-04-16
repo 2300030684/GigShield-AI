@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore, updatePassword } from "../store/authStore";
-import { ShieldCheck, Circle, AlertCircle, Shield } from "lucide-react";
+import { ShieldCheck, Circle, AlertCircle, Shield, Eye, EyeOff } from "lucide-react";
 import api from "../services/api.js";
 import "./Auth.css";
 
@@ -197,7 +197,126 @@ export default function AuthPage() {
               </>
             )}
 
-            {/* ...existing code for other steps... */}
+            {step === 2 && (
+              <>
+                <h2 className="auth-main-title">Enter your password</h2>
+                <div className="auth-edit-hint">
+                  <span className="current-id">{formData.identifier}</span>
+                  <button onClick={resetFlow} className="edit-btn">Change</button>
+                </div>
+                <form onSubmit={handleAuth}>
+                  <div className="input-group">
+                    <div className="auth-input-wrapper">
+                      <input 
+                        type={showPassword ? "text" : "password"} className="auth-input" placeholder="Password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        required
+                        autoFocus
+                      />
+                      <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </div>
+                  {error && <p style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px' }}>{error}</p>}
+                  <button type="submit" className="auth-primary-btn" disabled={loading || !formData.password}>
+                    {loading ? "Verifying..." : "Login"}
+                  </button>
+                </form>
+                <div className="resend-box" style={{ marginTop: '24px' }}>
+                  <button onClick={() => setStep(10)} className="resend-link">Forgot Password?</button>
+                </div>
+              </>
+            )}
+
+            {step === 10 && (
+              <>
+                <h2 className="auth-main-title">Forgot your password?</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>Enter your email or phone number and we'll send you an OTP to reset it.</p>
+                <form onSubmit={handleAuth}>
+                  <div className="input-group">
+                    <input 
+                      type="text" className="auth-input" placeholder="Email or Phone Number"
+                      value={formData.identifier}
+                      onChange={(e) => setFormData({...formData, identifier: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="auth-primary-btn" disabled={loading || !formData.identifier}>
+                    {loading ? "Sending OTP..." : "Continue"}
+                  </button>
+                </form>
+                <div className="resend-box" style={{ marginTop: '24px' }}>
+                  <button onClick={() => setStep(2)} className="resend-link">Back to Login</button>
+                </div>
+              </>
+            )}
+
+            {step === 11 && (
+              <>
+                <h2 className="auth-main-title">Enter Verification Code</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>We've sent a code to {formData.identifier}</p>
+                <div className="otp-input-container">
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={otpRefs[i]}
+                      type="text"
+                      className="otp-box"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      maxLength={1}
+                      autoFocus={i === 0}
+                    />
+                  ))}
+                </div>
+                {error && <p style={{ color: '#ef4444', fontSize: '13px', margin: '16px 0' }}>{error}</p>}
+                <button onClick={handleAuth} className="auth-primary-btn" disabled={loading || otp.some(d => !d)}>
+                  {loading ? "Verifying..." : "Verify & Continue"}
+                </button>
+                <div className="resend-box" style={{ marginTop: '24px' }}>
+                  Didn't receive the code? <button className="resend-link">Resend Code</button>
+                </div>
+              </>
+            )}
+
+            {step === 12 && (
+              <>
+                <h2 className="auth-main-title">Create new password</h2>
+                <form onSubmit={handleAuth}>
+                  <div className="input-group">
+                    <div className="auth-input-wrapper">
+                      <input 
+                        type={showPassword ? "text" : "password"} className="auth-input" placeholder="New Password"
+                        value={formData.newPassword}
+                        onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+                        required
+                        autoFocus
+                      />
+                      <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="password-requirements">
+                    {requirements.map((req) => {
+                      const isValid = validateReq(req, formData.newPassword);
+                      return (
+                        <div key={req.id} className={`requirement-item ${isValid ? 'valid' : 'invalid'}`}>
+                          {isValid ? <ShieldCheck size={14} /> : <Circle size={14} />}
+                          <span>{req.text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button type="submit" className="auth-primary-btn" disabled={loading || !isNewPassValid}>
+                    {loading ? "Updating..." : "Reset Password"}
+                  </button>
+                </form>
+              </>
+            )}
 
             <p className="auth-legal" style={{ marginTop: '32px' }}>
               By continuing, you agree to our <a href="#">privacy policy</a> and <a href="#">terms of use</a>

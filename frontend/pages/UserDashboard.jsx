@@ -25,20 +25,18 @@ const UserDashboard = () => {
       try {
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(async (position) => {
-            const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+            const { latitude, longitude, accuracy } = position.coords;
             try {
-              // 1. Sync location to backend
-              await api.request('POST', '/location', coords);
+              // Sync location to backend using the specific verify endpoint
+              await api.verifyLocation(latitude, longitude, accuracy);
             } catch (e) {
-              console.warn("Location sync failed, but continuing with load...", e);
+              console.warn("Location verification failed:", e);
             }
-            
-            // 2. Load dashboard data
             await loadDataGrid();
           }, (geoErr) => {
-            console.warn("Geolocation denied or failed:", geoErr);
+            console.warn("Geolocation failed:", geoErr);
             loadDataGrid();
-          });
+          }, { enableHighAccuracy: true, timeout: 10000 });
         } else {
           loadDataGrid();
         }

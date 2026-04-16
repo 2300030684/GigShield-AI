@@ -228,6 +228,18 @@ const ClaimHistory = () => {
     loadData();
   }, []);
 
+  const downloadCSV = () => {
+    if (claims.length === 0) return;
+    const headers = ['Date,Event,Zone,Payout,Status\n'];
+    const rows = claims.map(c => `${c.displayDate || c.date},${c.event},${c.zone},${c.approvedPayout},${c.status}`);
+    const blob = new Blob([headers.concat(rows.join('\n'))], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `trustpay_claims_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  };
+
   const handleNewClaim = (result) => {
     const newClaim = {
       id: result.claimID, date: new Date().toISOString().slice(0, 10),
@@ -271,7 +283,14 @@ const ClaimHistory = () => {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '32px', marginBottom: '8px' }}>Claims History</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Automatic payouts for {user.name} · {user.city}</p>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Automatic payouts for {user.name} · {user.city}</p>
+            <button onClick={downloadCSV} style={{ 
+              background: 'var(--bg-secondary)', border: '1px solid var(--border)', 
+              borderRadius: '8px', padding: '4px 12px', fontSize: '11px', fontWeight: 600,
+              cursor: 'pointer', color: 'var(--accent-cyan)'
+            }}>EXPORT CSV</button>
+          </div>
         </div>
         <button onClick={() => setShowClaimModal(true)} style={{
           display: 'flex', alignItems: 'center', gap: '10px',

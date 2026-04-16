@@ -6,7 +6,8 @@
 import { TrustpayDB, TrustpayComputed, TrustpayAI } from '../data/TrustpayData.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-const MOCK_MODE = false; // Connect to backend, but hybrid fallback if it fails
+const MOCK_MODE = false;
+const WEATHER_API_KEY = 'fd75a6170acc3ea58cc247f5682253e6';
 
 // ── TOKEN MANAGEMENT ──
 const TOKEN_KEY = 'trustpay_token';

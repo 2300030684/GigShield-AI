@@ -28,7 +28,6 @@ const EnvironmentalMaps = ({ city = "Bangalore", cityCoords = { lat: 12.9716, ln
 
     // ── WAQI LEAFLET MAP ──
     if (window.L && leafletMapRef.current) {
-      // Clear existing content if any (React mount/unmount safety)
       leafletMapRef.current.innerHTML = "";
       const mapContainer = document.createElement('div');
       mapContainer.style.height = "100%";
@@ -37,14 +36,27 @@ const EnvironmentalMaps = ({ city = "Bangalore", cityCoords = { lat: 12.9716, ln
 
       const map = window.L.map(mapContainer, {
         attributionControl: false,
-        gestureHandling: true,
         zoomSnap: 0.1,
       }).setView([cityCoords.lat, cityCoords.lng], 11);
 
       window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
+        attribution: '© OpenStreetMap',
       }).addTo(map);
+
+      // ── BACKEND DISRUPTIONS ──
+      api.getLiveDisruptions().then(res => {
+        const disruptions = Array.isArray(res) ? res : (res.disruptions || []);
+        disruptions.forEach(d => {
+          const color = d.severity === 'CRITICAL' ? '#ef4444' : d.severity === 'HIGH' ? '#f97316' : '#eab308';
+          window.L.circle([d.latitude, d.longitude], {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.3,
+            radius: 2000
+          }).addTo(map).bindPopup(`<b>${d.eventType}</b><br/>Severity: ${d.severity}<br/>Zone: ${d.zoneRank || 'High Risk'}`);
+        });
+      });
 
       const populateMarkers = (bounds) => {
         fetch(`https://api.waqi.info/v2/map/bounds/?latlng=${bounds}&token=${waqiToken}`)
@@ -54,36 +66,24 @@ const EnvironmentalMaps = ({ city = "Bangalore", cityCoords = { lat: 12.9716, ln
             stations.data.forEach(station => {
               let icon = window.L.icon({
                 iconUrl: `https://waqi.info/mapicon/${station.aqi}.30.png`,
-                iconSize: [41, 53],
-                iconAnchor: [20, 53],
+                iconSize: [30, 40],
+                iconAnchor: [15, 40],
               });
-
-              window.L.marker([station.lat, station.lon], {
-                zIndexOffset: station.aqi,
-                title: station.station.name,
-                icon: icon,
-              })
-              .addTo(map)
+              window.L.marker([station.lat, station.lon], { icon }).addTo(map)
               .bindPopup(`<b>${station.station.name}</b><br/>AQI: ${station.aqi}`);
             });
-          })
-          .catch(e => console.error("WAQI Fetch Error:", e));
+          });
       };
 
       map.on("moveend", () => {
         const b = map.getBounds();
-        const boundsStr = `${b.getNorth()},${b.getWest()},${b.getSouth()},${b.getEast()}`;
-        populateMarkers(boundsStr);
+        populateMarkers(`${b.getNorth()},${b.getWest()},${b.getSouth()},${b.getEast()}`);
       });
 
-      // Initial populate
       const b = map.getBounds();
-      const boundsStr = `${b.getNorth()},${b.getWest()},${b.getSouth()},${b.getEast()}`;
-      populateMarkers(boundsStr);
+      populateMarkers(`${b.getNorth()},${b.getWest()},${b.getSouth()},${b.getEast()}`);
 
-      return () => {
-        map.remove();
-      };
+      return () => { map.remove(); };
     }
   }, [cityCoords]);
 

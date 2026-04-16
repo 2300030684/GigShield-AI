@@ -168,9 +168,50 @@ const AdminDashboard = () => {
         </Card>
       )}
 
+      {/* User Management Section (NEW) */}
+      <Card style={{ marginTop: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h3 style={{ fontSize: '18px' }}>User Management</h3>
+          <Badge variant="cyan">{adminData.totalUsers || 0} Registered Players</Badge>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                <th style={{ padding: '12px' }}>USERNAME</th>
+                <th style={{ padding: '12px' }}>CITY & ZONE</th>
+                <th style={{ padding: '12px' }}>PLATFORM</th>
+                <th style={{ padding: '12px' }}>STATUS</th>
+                <th style={{ padding: '12px' }}>ONBOARDING</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Mock users for display if real list is empty */}
+              {(adminData.users || [
+                { username: 'delivery_pro_99', city: 'Bangalore', zone: 'Koramangala', platform: 'Swiggy', status: 'ACTIVE', completed: true },
+                { username: 'rider_king', city: 'Bangalore', zone: 'Indiranagar', platform: 'Zomato', status: 'ACTIVE', completed: true },
+                { username: 'fast_mover', city: 'Mumbai', zone: 'Andheri', platform: 'Zepto', status: 'ACTIVE', completed: false },
+              ]).map((u, i) => (
+                <tr key={i} style={{ borderBottom: i < 2 ? '1px solid var(--border)' : 'none', fontSize: '13px' }}>
+                  <td style={{ padding: '16px 12px', fontWeight: 600 }}>{u.username}</td>
+                  <td style={{ padding: '16px 12px' }}>{u.city} · {u.zone}</td>
+                  <td style={{ padding: '16px 12px' }}>{u.platform}</td>
+                  <td style={{ padding: '16px 12px' }}>
+                    <Badge variant={u.status === 'ACTIVE' ? 'green' : 'amber'}>{u.status}</Badge>
+                  </td>
+                  <td style={{ padding: '16px 12px' }}>
+                    {u.completed ? '✅ Done' : '⏳ Pending'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
       {/* Recent Activity */}
       {adminAnalytics.recentActivity?.length > 0 && (
-        <Card>
+        <Card style={{ marginTop: '32px' }}>
           <h3 style={{ fontSize: '18px', marginBottom: '24px' }}>Recent Payouts</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {adminAnalytics.recentActivity.map((a, i) => (
