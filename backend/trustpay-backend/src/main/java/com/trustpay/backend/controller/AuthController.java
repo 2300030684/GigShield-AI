@@ -3,7 +3,7 @@ package com.trustpay.backend.controller;
 import com.trustpay.backend.dto.AuthRequest;
 import com.trustpay.backend.model.User;
 import com.trustpay.backend.repository.UserRepository;
-import com.trustpay.backend.security.JwtUtil;
+import com.trustpay.backend.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +19,7 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtils;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
@@ -40,7 +40,7 @@ public class AuthController {
                 .or(() -> userRepository.findByEmail(loginId))
                 .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
                 .map(user -> {
-                    String token = jwtUtil.generateToken(user.getUsername());
+                    String token = jwtUtils.generateTokenFromUsername(user.getUsername());
                     Map<String, Object> response = new HashMap<>();
                     response.put("token", token);
                     response.put("user", user);
