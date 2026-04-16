@@ -45,8 +45,6 @@ public class User {
     private String vehicleType;
     private String upiId;
     private String panNumber;
-    private String bankAccount;
-    private String ifscCode;
     private Boolean isOnboardingComplete;
     private Boolean coveragePaused;
     

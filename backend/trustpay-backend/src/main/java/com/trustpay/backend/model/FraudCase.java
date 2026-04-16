@@ -19,7 +19,7 @@ public class FraudCase {
     private String claimId;
     private String workerName;
     private String city;
-    private String type; // e.g., "GPS Mismatch"
+    private String reason; // e.g., "GPS Mismatch"
     
     private Integer score; // 0-100
     private String status; // PENDING, APPROVED, REJECTED

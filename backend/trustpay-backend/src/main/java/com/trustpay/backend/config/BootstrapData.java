@@ -127,7 +127,7 @@ public class BootstrapData implements ApplicationRunner {
                     .claimId("TP-C-9999")
                     .workerName("Vikram Singh")
                     .city("Hyderabad")
-                    .type("GPS Mismatch")
+                    .reason("GPS Mismatch")
                     .score(82)
                     .status("PENDING")
                     .flag("CLAIM_OUTSIDE_ZONE")

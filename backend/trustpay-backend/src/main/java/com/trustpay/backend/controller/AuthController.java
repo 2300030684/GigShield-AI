@@ -95,8 +95,6 @@ public class AuthController {
                     else if (updates.containsKey("upiID")) user.setUpiId((String) updates.get("upiID"));
 
                     if (updates.containsKey("panNumber")) user.setPanNumber((String) updates.get("panNumber"));
-                    if (updates.containsKey("bankAccount")) user.setBankAccount((String) updates.get("bankAccount"));
-                    if (updates.containsKey("ifscCode")) user.setIfscCode((String) updates.get("ifscCode"));
                     
                     // Auto-assign workerId if missing
                     if (user.getWorkerId() == null || user.getWorkerId().isEmpty()) {
