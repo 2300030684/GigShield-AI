@@ -144,4 +144,43 @@ public class AuthController {
         response.put("message", "Logged out successfully");
         return ResponseEntity.ok(response);
     }
+
+    // ── DEMO ONLY: Create admin account ──
+    // POST /api/auth/create-admin?secret=trustpay2026
+    @PostMapping("/create-admin")
+    public ResponseEntity<?> createAdmin(@RequestParam(defaultValue = "") String secret) {
+        if (!"trustpay2026".equals(secret)) {
+            return ResponseEntity.status(403).body("Forbidden");
+        }
+        if (userRepository.existsByUsername("admin")) {
+            // Ensure existing admin has onboarding complete
+            return userRepository.findByUsername("admin").map(u -> {
+                u.setIsOnboardingComplete(true);
+                u.setRole("ROLE_ADMIN");
+                userRepository.save(u);
+                String token = jwtUtils.generateTokenFromUsername(u.getUsername());
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("token", token);
+                resp.put("user", u);
+                resp.put("message", "Admin already exists — returning token");
+                return ResponseEntity.ok((Object) resp);
+            }).orElse(ResponseEntity.status(404).build());
+        }
+        User admin = new User();
+        admin.setUsername("admin");
+        admin.setEmail("admin@trustpay.ai");
+        admin.setName("TrustPay Admin");
+        admin.setPassword(passwordEncoder.encode("Admin@2026"));
+        admin.setRole("ROLE_ADMIN");
+        admin.setIsOnboardingComplete(true);
+        admin.setStatus("ACTIVE");
+        User saved = userRepository.save(admin);
+        String token = jwtUtils.generateTokenFromUsername(saved.getUsername());
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", saved);
+        response.put("message", "Admin created: username=admin, password=Admin@2026");
+        log.info("[ADMIN] Admin account created successfully");
+        return ResponseEntity.ok(response);
+    }
 }

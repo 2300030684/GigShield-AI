@@ -69,12 +69,15 @@ export default function AuthPage() {
         });
 
         if (data) {
+          const backendUser = data.user || data;
           login({ 
-            id: data.id || data.user?.id || "user_1", 
-            name: data.name || data.user?.name || "User", 
-            email: formData.identifier,
-            activePlan: data.activePlan || data.user?.activePlan || "none",
-            isOnboardingComplete: data.isOnboardingComplete || data.user?.isOnboardingComplete || false
+            id: backendUser.id || "user_1", 
+            name: backendUser.name || backendUser.username || "User", 
+            email: backendUser.email || formData.identifier,
+            username: backendUser.username,
+            activePlan: backendUser.activePlan || "none",
+            isOnboardingComplete: backendUser.isOnboardingComplete === true,
+            role: backendUser.role || "ROLE_WORKER",
           }, data.token || "real_token");
         }
       } catch (err) {

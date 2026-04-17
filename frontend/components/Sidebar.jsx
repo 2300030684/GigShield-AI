@@ -5,20 +5,21 @@ import {
   ShieldCheck, 
   Activity, 
   List, 
-  DollarSign, 
   User,
   LogOut,
+  Settings,
+  Shield,
 } from 'lucide-react';
 import { fetchUserData } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
 const Sidebar = () => {
   const [user, setUser] = useState(null);
-  const { logout } = useAuthStore();
+  const { logout, isAdmin, user: authUser } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -28,11 +29,12 @@ const Sidebar = () => {
         const data = await fetchUserData();
         setUser(data);
       } catch (err) {
-        console.error('Sidebar data error:', err);
+        // fallback to store user
+        if (authUser) setUser(authUser);
       }
     };
     loadUser();
-  }, []);
+  }, [authUser]);
 
   const navItems = [
     { label: 'Home', path: '/dashboard', icon: Home },
@@ -41,6 +43,12 @@ const Sidebar = () => {
     { label: 'Claims', path: '/claim', icon: List },
     { label: 'Profile', path: '/settings', icon: User },
   ];
+
+  const adminItems = [
+    { label: 'Admin', path: '/admin', icon: Shield },
+  ];
+
+  const displayUser = user || authUser;
 
   return (
     <aside className="sidebar-desktop" style={{
@@ -52,7 +60,7 @@ const Sidebar = () => {
       padding: '24px 0'
     }}>
       <div style={{ padding: '0 24px', marginBottom: '40px' }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
           <img src="/favicon.svg" alt="Trustpay Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
           <span style={{
             fontFamily: 'var(--font-heading)',
@@ -66,7 +74,7 @@ const Sidebar = () => {
         </Link>
       </div>
 
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {navItems.map((item) => (
           <NavLink
             key={item.label}
@@ -92,38 +100,78 @@ const Sidebar = () => {
             )}
           </NavLink>
         ))}
+
+        {/* Admin section — shown only for ROLE_ADMIN users */}
+        {isAdmin() && (
+          <>
+            <div style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              color: 'var(--text-muted)',
+              padding: '16px 24px 4px',
+              textTransform: 'uppercase'
+            }}>
+              Admin
+            </div>
+            {adminItems.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.path}
+                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '12px 24px',
+                  color: 'var(--accent-orange)',
+                  transition: 'all 0.2s ease',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  borderLeft: '3px solid transparent'
+                }}
+              >
+                {({ isActive }) => (
+                  <>
+                    <item.icon size={20} color={isActive ? 'var(--accent-orange)' : 'currentColor'} />
+                    <span style={{ color: isActive ? 'var(--text-primary)' : 'inherit' }}>{item.label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </>
+        )}
       </nav>
 
-      {user && (
+      {displayUser && (
         <div style={{ padding: '24px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '40px', height: '40px', borderRadius: '50%',
-              background: user.platformBadge?.color ? `${user.platformBadge.color}15` : 'var(--accent-cyan-dim)', 
-              color: user.platformBadge?.color || 'var(--accent-cyan)',
+              background: isAdmin() ? 'rgba(245,158,11,0.15)' : 'var(--accent-cyan-dim)', 
+              color: isAdmin() ? 'var(--accent-orange)' : 'var(--accent-cyan)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 800, fontSize: '14px', border: user.platformBadge?.color ? `1px solid ${user.platformBadge.color}33` : 'none'
+              fontWeight: 800, fontSize: '14px',
+              border: isAdmin() ? '1px solid rgba(245,158,11,0.3)' : 'none'
             }}>
-              {user.name?.split(' ').map(n => n[0]).join('') || 'TP'}
+              {displayUser.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'TP'}
             </div>
             <div style={{ overflow: 'hidden', flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
-              {user.platformBadge ? (
-                <div className="platform-badge" style={{ 
-                  background: `${user.platformBadge.color}15`, 
-                  border: `1px solid ${user.platformBadge.color}33`,
-                  color: user.platformBadge.color,
-                  fontSize: '9px',
-                  padding: '2px 8px',
-                  marginTop: '4px'
-                }}>
-                  {user.platformBadge.label}
-                </div>
-              ) : (
-                <div className="badge badge-green" style={{ fontSize: '10px', padding: '2px 6px', marginTop: '4px' }}>
-                  Standard Plan
-                </div>
-              )}
+              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {displayUser.name || displayUser.username || 'User'}
+              </div>
+              <div className="badge" style={{
+                fontSize: '9px',
+                padding: '2px 8px',
+                marginTop: '4px',
+                background: isAdmin() ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.1)',
+                color: isAdmin() ? 'var(--accent-orange)' : 'var(--accent-green)',
+                border: `1px solid ${isAdmin() ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.2)'}`,
+                borderRadius: '4px',
+                display: 'inline-block',
+              }}>
+                {isAdmin() ? '⚡ Admin' : 'Standard Plan'}
+              </div>
             </div>
           </div>
           <button 

@@ -14,8 +14,12 @@ export default function OnboardingPage() {
     platforms: [], 
     panNumber: '',
     panName: '', 
+    phone: '',
     upiId: '',
-    isUpiVerified: false
+    isUpiVerified: false,
+    payoutMethod: '',
+    bankAccount: '',
+    ifscCode: ''
   });
 
   const steps = [
@@ -65,13 +69,24 @@ export default function OnboardingPage() {
       setStep(3.6);
     }
     else if (step === 3.6) {
-      if (!formData.upiId) {
-        alert('Please enter your UPI ID.');
-        return;
-      }
-      if (!formData.isUpiVerified) {
-        alert('Please verify your UPI ID before continuing.');
-        return;
+      if (formData.payoutMethod === 'upi') {
+        if (!formData.upiId) {
+          alert('Please enter your UPI ID.');
+          return;
+        }
+        if (!formData.isUpiVerified) {
+          alert('Please verify your UPI ID before continuing.');
+          return;
+        }
+      } else if (formData.payoutMethod === 'bank') {
+        if (!formData.bankAccount || formData.bankAccount.length < 6) {
+          alert('Please enter a valid bank account number.');
+          return;
+        }
+        if (!formData.ifscCode || formData.ifscCode.length < 11) {
+          alert('Please enter a valid 11-character IFSC code.');
+          return;
+        }
       }
       setStep(3.7);
     }
@@ -84,7 +99,7 @@ export default function OnboardingPage() {
         panNumber: formData.panNumber,
         phone: formData.phone,
         isOnboardingComplete: true,
-        upiID: formData.payoutMethod === 'upi' ? formData.upiId : '',
+        upiID: formData.payoutMethod === 'upi' ? formData.upiId : formData.bankAccount,
       };
 
       import('../services/api.js').then(async (m) => {
@@ -320,9 +335,9 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <div className="review-item">
-                    <div className="review-label">Payout UPI ID</div>
+                    <div className="review-label">Payout Details</div>
                     <div className="review-value-box">
-                      <span>{formData.upiId || 'Not entered'}</span>
+                      <span>{formData.payoutMethod === 'bank' ? `Bank: *${(formData.bankAccount||'').slice(-4)}` : formData.upiId || 'Not entered'}</span>
                       <button className="edit-btn" onClick={() => setStep(3.6)}><Activity size={14} /></button>
                     </div>
                   </div>
@@ -354,7 +369,34 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {step === 3.6 && (
+            {step === 3.5 && (
+              <div className="onboarding-step-content fade-in" style={{ maxWidth: '600px' }}>
+                <h1 className="onboarding-step-title">Select Payout Method</h1>
+                <p className="onboarding-step-desc">
+                  How would you like to receive your auto-payouts?
+                </p>
+                <div className="platform-grid">
+                  <div 
+                    className={`platform-card ${formData.payoutMethod === 'upi' ? 'selected' : ''}`}
+                    onClick={() => setFormData({...formData, payoutMethod: 'upi'})}
+                    style={{ padding: '24px' }}
+                  >
+                    <div className="platform-name" style={{ fontSize: '18px', fontWeight: '600' }}>UPI</div>
+                    <p style={{ fontSize: '13px', color: '#697386', marginTop: '8px' }}>Instant transfer to UPI ID</p>
+                  </div>
+                  <div 
+                    className={`platform-card ${formData.payoutMethod === 'bank' ? 'selected' : ''}`}
+                    onClick={() => setFormData({...formData, payoutMethod: 'bank'})}
+                    style={{ padding: '24px' }}
+                  >
+                    <div className="platform-name" style={{ fontSize: '18px', fontWeight: '600' }}>Bank Transfer</div>
+                    <p style={{ fontSize: '13px', color: '#697386', marginTop: '8px' }}>NEFT/IMPS to Account</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 3.6 && formData.payoutMethod === 'upi' && (
               <div className="onboarding-step-content fade-in">
                 <h1 className="onboarding-step-title">Enter UPI ID</h1>
                 <p className="onboarding-step-desc">Enter your UPI ID for instant daily payouts</p>
@@ -372,6 +414,33 @@ export default function OnboardingPage() {
                       {formData.isUpiVerified ? "VERIFIED ✅" : "VERIFY"}
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {step === 3.6 && formData.payoutMethod === 'bank' && (
+              <div className="onboarding-step-content fade-in">
+                <h1 className="onboarding-step-title">Enter Bank Details</h1>
+                <p className="onboarding-step-desc">Enter your bank details for direct payouts</p>
+                <div className="onboarding-input-group" style={{ marginBottom: '16px' }}>
+                  <label>Account Number</label>
+                  <input 
+                    type="password" 
+                    className="onboarding-input"
+                    placeholder="Enter Account Number"
+                    value={formData.bankAccount}
+                    onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
+                  />
+                </div>
+                <div className="onboarding-input-group">
+                  <label>IFSC Code</label>
+                  <input 
+                    type="text" 
+                    className="onboarding-input"
+                    placeholder="e.g. HDFC0001234"
+                    value={formData.ifscCode}
+                    onChange={(e) => setFormData({...formData, ifscCode: e.target.value})}
+                  />
                 </div>
               </div>
             )}

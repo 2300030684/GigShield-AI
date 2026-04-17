@@ -9,7 +9,9 @@ start "TrustPay ML API" cmd /k "cd /d c:\devtrails 2\TrustPay\ml && pip install 
 timeout /t 3 /nobreak >nul
 
 echo [2/3] Starting Spring Boot Backend on port 8080...
-start "TrustPay Backend" cmd /k "cd /d c:\devtrails 2\TrustPay\backend\trustpay-backend && mvnw.cmd spring-boot:run"
+set "JAVA_HOME=C:\Program Files\Java\jdk-21.0.10"
+set "PATH=%JAVA_HOME%\bin;%PATH%"
+start "TrustPay Backend" cmd /k "set JAVA_HOME=C:\Program Files\Java\jdk-21.0.10 && set PATH=%JAVA_HOME%\bin;%PATH% && cd /d c:\devtrails 2\TrustPay\backend\trustpay-backend && mvnw.cmd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo [3/3] Starting React Frontend on port 5173...
@@ -21,6 +23,11 @@ echo  All services starting up!
 echo  Flask ML:  http://localhost:5001/health
 echo  Backend:   http://localhost:8080/api
 echo  Frontend:  http://localhost:5173
+echo ============================================
+echo.
+echo  Admin Setup (run after backend starts):
+echo  POST http://localhost:8080/api/auth/create-admin?secret=trustpay2026
+echo  Login: admin / Admin@2026
 echo ============================================
 echo.
 pause

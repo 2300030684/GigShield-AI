@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 // ── MOCK DATABASE HELPERS ──
 const USERS_KEY = 'tp_registered_users';
@@ -10,7 +10,6 @@ const getRegisteredUsers = () => {
 
 export const registerUser = (userData) => {
   const users = getRegisteredUsers();
-  // Check if already registered
   if (!users.find(u => u.identifier === userData.identifier)) {
     users.push(userData);
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
@@ -36,15 +35,21 @@ export const updatePassword = (identifier, newPassword) => {
 // ── MAIN AUTH STORE ──
 export const useAuthStore = () => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('tp_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('tp_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
   });
   
   const [token, setToken] = useState(() => localStorage.getItem('trustpay_token'));
 
   const login = useCallback((userData, userToken) => {
-    // Ensure onboarding status is trackable
-    const userWithStatus = { ...userData, isOnboardingComplete: userData.isOnboardingComplete || false };
+    // Normalize and persist all user fields including role and onboarding status
+    const userWithStatus = {
+      ...userData,
+      isOnboardingComplete: userData.isOnboardingComplete === true,
+      role: userData.role || 'ROLE_WORKER',
+    };
     localStorage.setItem('tp_user', JSON.stringify(userWithStatus));
     localStorage.setItem('trustpay_token', userToken);
     setUser(userWithStatus);
@@ -52,21 +57,26 @@ export const useAuthStore = () => {
   }, []);
 
   const completeOnboarding = useCallback(() => {
-    if (!user) return;
-    const updatedUser = { ...user, isOnboardingComplete: true };
-    localStorage.setItem('tp_user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    
-    // Also update in the mock DB
-    const users = getRegisteredUsers();
-    const index = users.findIndex(u => u.identifier === user.email);
-    if (index !== -1) {
-      users[index].isOnboardingComplete = true;
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-  }, [user]);
+    setUser(prev => {
+      if (!prev) return prev;
+      const updatedUser = { ...prev, isOnboardingComplete: true };
+      localStorage.setItem('tp_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Try to call backend logout
+    try {
+      const token = localStorage.getItem('trustpay_token');
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+    } catch (_) { /* ignore */ }
+    
     localStorage.removeItem('tp_user');
     localStorage.removeItem('trustpay_token');
     localStorage.removeItem('auth_user'); 
@@ -79,6 +89,10 @@ export const useAuthStore = () => {
     return user?.activePlan && user?.activePlan !== 'none';
   }, [user]);
 
+  const isAdmin = useCallback(() => {
+    return user?.role === 'ROLE_ADMIN';
+  }, [user]);
+
   return {
     isLoggedIn: !!token,
     user,
@@ -86,6 +100,7 @@ export const useAuthStore = () => {
     login,
     logout,
     hasPlan,
+    isAdmin,
     completeOnboarding,
   };
 };
