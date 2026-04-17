@@ -68,11 +68,14 @@ export const useAuthStore = () => {
       isOnboardingComplete: userData.isOnboardingComplete === true,
       role: userData.role || 'ROLE_WORKER',
     };
+    // Immediate sync to global state for route guards
+    globalState.user = userWithStatus;
+    globalState.token = userToken;
+    
+    // Persist
     localStorage.setItem('tp_user', JSON.stringify(userWithStatus));
     localStorage.setItem('trustpay_token', userToken);
     
-    globalState.user = userWithStatus;
-    globalState.token = userToken;
     notifyListeners();
   }, []);
 

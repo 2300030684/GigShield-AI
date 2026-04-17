@@ -124,6 +124,8 @@ const request = async (method, path, data = null) => {
 
     // Handle 401 or 403: clear token and redirect to login if necessary
     if (response.status === 401 || response.status === 403) {
+      console.error(`[AUTH ERROR] ${response.status} ${apiPath} — Clearing session and redirecting.`);
+      console.trace('Unauthorized API call origin:');
       const currentPath = window.location.pathname;
       const isPublicPage = currentPath === '/' || currentPath === '/login' || currentPath === '/register';
       
@@ -132,11 +134,13 @@ const request = async (method, path, data = null) => {
       
       // Only trigger a hard redirect if we're on a protected page
       if (!isPublicPage) {
+        console.warn(`[AUTH] Redirecting to login from protected page: ${currentPath}`);
         window.location.href = '/login';
       }
       
-      const err = new Error('Session expired or unauthorized.');
+      const err = new Error(`Session expired or unauthorized (${response.status}).`);
       err.isAuthError = true;
+      err.status = response.status;
       throw err;
     }
 
