@@ -28,11 +28,7 @@ import MobileNav from './components/MobileNav';
 import { connectSocket } from './services/socket.js';
 import { useAuthStore } from './store/authStore';
 
-// ── Route guard: redirect to /login if no JWT token
-const PrivateRoute = () => {
-  const { isLoggedIn } = useAuthStore();
-  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
-};
+import ProtectedRoute from './components/ProtectedRoute';
 
 // ── Route guard: redirect to /onboarding if user hasn't completed it yet
 const OnboardingGuard = () => {
@@ -109,7 +105,7 @@ function App() {
         </Route>
 
         {/* Protected Routes */}
-        <Route element={<PrivateRoute />}>
+        <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
           {/* Onboarding — must complete before accessing any other page */}
           <Route path="/onboarding" element={<OnboardingPage />} />
 

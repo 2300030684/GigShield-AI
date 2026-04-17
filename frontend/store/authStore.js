@@ -4,13 +4,13 @@ import { useState, useCallback, useEffect } from 'react';
 // This ensures all instances of the hook share the same data and sync across the app.
 let globalState = {
   user: null,
-  token: localStorage.getItem('trustpay_token'),
+  token: localStorage.getItem('token'),
   listeners: new Set()
 };
 
 // Try to load initial user from storage
 try {
-  const saved = localStorage.getItem('tp_user');
+  const saved = localStorage.getItem('user');
   if (saved) globalState.user = JSON.parse(saved);
 } catch (e) {}
 
@@ -73,8 +73,8 @@ export const useAuthStore = () => {
     globalState.token = userToken;
     
     // Persist
-    localStorage.setItem('tp_user', JSON.stringify(userWithStatus));
-    localStorage.setItem('trustpay_token', userToken);
+    localStorage.setItem('user', JSON.stringify(userWithStatus));
+    localStorage.setItem('token', userToken);
     
     notifyListeners();
   }, []);
@@ -82,10 +82,8 @@ export const useAuthStore = () => {
   const logout = useCallback(async () => {
     const token = globalState.token;
     
-    localStorage.removeItem('tp_user');
-    localStorage.removeItem('trustpay_token');
-    localStorage.removeItem('auth_user'); 
-    sessionStorage.clear();
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');    sessionStorage.clear();
     
     globalState.user = null;
     globalState.token = null;
@@ -104,7 +102,7 @@ export const useAuthStore = () => {
   const completeOnboarding = useCallback(() => {
     if (!globalState.user) return;
     const updatedUser = { ...globalState.user, isOnboardingComplete: true };
-    localStorage.setItem('tp_user', JSON.stringify(updatedUser));
+    localStorage.setItem('user', JSON.stringify(updatedUser));
     globalState.user = updatedUser;
     notifyListeners();
   }, []);

@@ -197,6 +197,11 @@ const UserDashboard = () => {
 
   useEffect(() => {
     const syncLocationAndLoad = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
       try {
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(async (position) => {

@@ -10,7 +10,7 @@ const MOCK_MODE = false;
 const WEATHER_API_KEY = 'fd75a6170acc3ea58cc247f5682253e6';
 
 // ── TOKEN MANAGEMENT ──
-const TOKEN_KEY = 'trustpay_token';
+const TOKEN_KEY = 'token';
 
 const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 const getToken = () => localStorage.getItem(TOKEN_KEY);
@@ -130,7 +130,7 @@ const request = async (method, path, data = null) => {
       const isPublicPage = currentPath === '/' || currentPath === '/login' || currentPath === '/register';
       
       clearToken();
-      localStorage.removeItem('tp_user'); // Also clear user data
+      localStorage.removeItem('user'); // Also clear user data
       
       // Only trigger a hard redirect if we're on a protected page
       if (!isPublicPage) {

@@ -73,15 +73,16 @@ export default function AuthPage() {
               throw new Error("Login succeeded but no token was provided by the server.");
           }
           const backendUser = data.user || data;
-          login({ 
-            id: backendUser.id || "user_1", 
-            name: backendUser.name || backendUser.username || "User", 
-            email: backendUser.email || formData.identifier,
-            username: backendUser.username,
-            activePlan: backendUser.activePlan || "none",
-            isOnboardingComplete: backendUser.isOnboardingComplete === true,
-            role: backendUser.role || "ROLE_WORKER",
-          }, data.token);
+          // ── STANDARDIZED STORAGE WRITE ──
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(backendUser));
+
+          // Then update the store (listeners)
+          login(backendUser, data.token);
+          
+          // Only navigate AFTER storage is confirmed (implicit in sequential execution here)
+          const redirectPath = backendUser.activePlan && backendUser.activePlan !== 'none' ? "/dashboard" : "/plans";
+          navigate(backendUser.isOnboardingComplete ? redirectPath : "/onboarding", { replace: true });
       } catch (err) {
         console.error("Login API error:", err);
         setError("Network error. Could not connect to API.");
