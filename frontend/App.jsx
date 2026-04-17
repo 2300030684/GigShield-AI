@@ -17,9 +17,14 @@ import FraudMonitor from "./pages/FraudMonitor";
 import AuthCallback from "./pages/AuthCallback";
 import RegisterPage from "./pages/RegisterPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import InsuranceCatalog from "./pages/InsuranceCatalog";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import StormSimulator from "./pages/StormSimulator";
+
 
 import MobileNav from './components/MobileNav';
-import api from './services/api.js';
 import { connectSocket } from './services/socket.js';
 import { useAuthStore } from './store/authStore';
 
@@ -30,7 +35,6 @@ const PrivateRoute = () => {
 };
 
 // ── Route guard: redirect to /onboarding if user hasn't completed it yet
-//    (skips the check if we're already on /onboarding)
 const OnboardingGuard = () => {
   const { user } = useAuthStore();
   const location = useLocation();
@@ -43,9 +47,8 @@ const OnboardingGuard = () => {
 
 // ── Admin-only guard
 const AdminRoute = () => {
-  const { user } = useAuthStore();
-  const isAdmin = user?.role === 'ROLE_ADMIN';
-  return isAdmin ? <Outlet /> : <Navigate to="/dashboard" replace />;
+  const { user, isAdmin } = useAuthStore();
+  return isAdmin() ? <Outlet /> : <Navigate to="/dashboard" replace />;
 };
 
 // ── Route guard: redirect to /dashboard if ALREADY logged in (for public pages)
@@ -97,10 +100,12 @@ function App() {
         </Route>
 
         {/* Public Routes - With Navbar */}
-        <Route element={<PublicRoute />}>
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<LandingPage />} />
-          </Route>
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:id" element={<BlogPostPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/insurance-catalog" element={<InsuranceCatalog />} />
         </Route>
 
         {/* Protected Routes */}
@@ -117,12 +122,16 @@ function App() {
               <Route path="/claim-flow"  element={<ClaimFlow />} />
               <Route path="/insights"    element={<AIInsights />} />
               <Route path="/settings"    element={<SettingsProfile />} />
+              <Route path="/blog-feed"   element={<BlogPage />} />
+              <Route path="/catalog"     element={<InsuranceCatalog />} />
 
               {/* Admin-only pages */}
               <Route element={<AdminRoute />}>
                 <Route path="/admin"       element={<AdminDashboard />} />
                 <Route path="/admin/fraud" element={<FraudMonitor />} />
+                <Route path="/admin/simulate" element={<StormSimulator />} />
               </Route>
+
             </Route>
           </Route>
         </Route>

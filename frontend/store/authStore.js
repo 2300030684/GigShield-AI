@@ -1,15 +1,28 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
-// ── MOCK DATABASE HELPERS ──
-const USERS_KEY = 'tp_registered_users';
-
-const getRegisteredUsers = () => {
-  const saved = localStorage.getItem(USERS_KEY);
-  return saved ? JSON.parse(saved) : [];
+// ── GLOBAL STATE SINGLETON ──
+// This ensures all instances of the hook share the same data and sync across the app.
+let globalState = {
+  user: null,
+  token: localStorage.getItem('trustpay_token'),
+  listeners: new Set()
 };
 
+// Try to load initial user from storage
+try {
+  const saved = localStorage.getItem('tp_user');
+  if (saved) globalState.user = JSON.parse(saved);
+} catch (e) {}
+
+const notifyListeners = () => {
+  globalState.listeners.forEach(listener => listener({ ...globalState }));
+};
+
+const USERS_KEY = 'tp_registered_users';
+
 export const registerUser = (userData) => {
-  const users = getRegisteredUsers();
+  const saved = localStorage.getItem(USERS_KEY);
+  const users = saved ? JSON.parse(saved) : [];
   if (!users.find(u => u.identifier === userData.identifier)) {
     users.push(userData);
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
@@ -17,12 +30,14 @@ export const registerUser = (userData) => {
 };
 
 export const findUser = (identifier) => {
-  const users = getRegisteredUsers();
+  const saved = localStorage.getItem(USERS_KEY);
+  const users = saved ? JSON.parse(saved) : [];
   return users.find(u => u.identifier === identifier);
 };
 
 export const updatePassword = (identifier, newPassword) => {
-  const users = getRegisteredUsers();
+  const saved = localStorage.getItem(USERS_KEY);
+  const users = saved ? JSON.parse(saved) : [];
   const index = users.findIndex(u => u.identifier === identifier);
   if (index !== -1) {
     users[index].password = newPassword;
@@ -32,19 +47,22 @@ export const updatePassword = (identifier, newPassword) => {
   return false;
 };
 
-// ── MAIN AUTH STORE ──
 export const useAuthStore = () => {
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('tp_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
-  
-  const [token, setToken] = useState(() => localStorage.getItem('trustpay_token'));
+  const [state, setState] = useState({ user: globalState.user, token: globalState.token });
+
+  useEffect(() => {
+    const listener = (newState) => {
+      setState({ user: newState.user, token: newState.token });
+    };
+    globalState.listeners.add(listener);
+    // Sync state on mount
+    if (state.token !== globalState.token || state.user !== globalState.user) {
+        setState({ user: globalState.user, token: globalState.token });
+    }
+    return () => globalState.listeners.delete(listener);
+  }, []);
 
   const login = useCallback((userData, userToken) => {
-    // Normalize and persist all user fields including role and onboarding status
     const userWithStatus = {
       ...userData,
       isOnboardingComplete: userData.isOnboardingComplete === true,
@@ -52,55 +70,50 @@ export const useAuthStore = () => {
     };
     localStorage.setItem('tp_user', JSON.stringify(userWithStatus));
     localStorage.setItem('trustpay_token', userToken);
-    setUser(userWithStatus);
-    setToken(userToken);
-  }, []);
-
-  const completeOnboarding = useCallback(() => {
-    setUser(prev => {
-      if (!prev) return prev;
-      const updatedUser = { ...prev, isOnboardingComplete: true };
-      localStorage.setItem('tp_user', JSON.stringify(updatedUser));
-      return updatedUser;
-    });
+    
+    globalState.user = userWithStatus;
+    globalState.token = userToken;
+    notifyListeners();
   }, []);
 
   const logout = useCallback(async () => {
-    // Try to call backend logout
-    try {
-      const token = localStorage.getItem('trustpay_token');
-      if (token) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-      }
-    } catch (_) { /* ignore */ }
+    const token = globalState.token;
     
     localStorage.removeItem('tp_user');
     localStorage.removeItem('trustpay_token');
     localStorage.removeItem('auth_user'); 
     sessionStorage.clear();
-    setUser(null);
-    setToken(null);
+    
+    globalState.user = null;
+    globalState.token = null;
+    notifyListeners();
+
+    try {
+      if (token) {
+        fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => {});
+      }
+    } catch (_) {}
   }, []);
 
-  const hasPlan = useCallback(() => {
-    return user?.activePlan && user?.activePlan !== 'none';
-  }, [user]);
-
-  const isAdmin = useCallback(() => {
-    return user?.role === 'ROLE_ADMIN';
-  }, [user]);
+  const completeOnboarding = useCallback(() => {
+    if (!globalState.user) return;
+    const updatedUser = { ...globalState.user, isOnboardingComplete: true };
+    localStorage.setItem('tp_user', JSON.stringify(updatedUser));
+    globalState.user = updatedUser;
+    notifyListeners();
+  }, []);
 
   return {
-    isLoggedIn: !!token,
-    user,
-    token,
+    isLoggedIn: !!state.token,
+    user: state.user,
+    token: state.token,
     login,
     logout,
-    hasPlan,
-    isAdmin,
     completeOnboarding,
+    isAdmin: () => state.user?.role === 'ROLE_ADMIN',
+    hasPlan: () => state.user?.activePlan && state.user?.activePlan !== 'none',
   };
 };

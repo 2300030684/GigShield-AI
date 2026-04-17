@@ -89,21 +89,47 @@ const EnvironmentalMaps = ({ city = "Bangalore", cityCoords = { lat: 12.9716, ln
   }, [cityCoords]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
-      <Card style={{ padding: 0, overflow: 'hidden', height: '400px', border: '1px solid var(--border)' }}>
-        <div style={{ padding: '12px 20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', fontWeight: 600 }}>🚦 Live Traffic Layer (Google Maps)</span>
-          <span style={{ fontSize: '11px', color: 'var(--accent-green)' }}>● LIVE</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '60px' }}>
+      <Card glow style={{ padding: 0, overflow: 'hidden', height: '500px', border: '1px solid rgba(0, 224, 255, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+        <div style={{ 
+          padding: '16px 28px', 
+          background: 'linear-gradient(90deg, var(--bg-card), rgba(6,182,212,0.05))', 
+          borderBottom: '1px solid var(--border)', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center' 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '20px' }}>🚦</span>
+            <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.5px' }}>LIVE TRAFFIC DENSITY (GOOGLE MAPS)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-green)', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green)' }}>REAL-TIME FEED</span>
+          </div>
         </div>
-        <div ref={googleMapRef} style={{ width: '100%', height: 'calc(100% - 45px)' }}></div>
+        <div ref={googleMapRef} style={{ width: '100%', height: 'calc(100% - 56px)' }}></div>
       </Card>
 
-      <Card style={{ padding: 0, overflow: 'hidden', height: '400px', border: '1px solid var(--border)' }}>
-        <div style={{ padding: '12px 20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', fontWeight: 600 }}>🌫️ Air Quality Index (WAQI)</span>
-          <span style={{ fontSize: '11px', color: 'var(--accent-cyan)' }}>● ACTIVE</span>
+      <Card glow style={{ padding: 0, overflow: 'hidden', height: '500px', border: '1px solid rgba(16, 185, 129, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+        <div style={{ 
+          padding: '16px 28px', 
+          background: 'linear-gradient(90deg, var(--bg-card), rgba(16,185,129,0.05))', 
+          borderBottom: '1px solid var(--border)', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center' 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '20px' }}>🌫️</span>
+            <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.5px' }}>AIR QUALITY INDEX (WAQI RADAR)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-cyan)', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-cyan)' }}>ACTIVE MONITORING</span>
+          </div>
         </div>
-        <div ref={leafletMapRef} style={{ width: '100%', height: 'calc(100% - 45px)' }}></div>
+        <div ref={leafletMapRef} style={{ width: '100%', height: 'calc(100% - 56px)' }}></div>
       </Card>
     </div>
   );

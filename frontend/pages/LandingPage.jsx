@@ -1,309 +1,202 @@
-import React, { useState } from 'react';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
-import { Badge } from '../components/Badge';
-import { PlayCircle, Brain, Zap, Shield, FileX, MapPin, CheckCircle, Smartphone, ShieldCheck, ChevronDown } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { Shield, CloudRain, TrendingUp, Zap, ArrowRight, CheckCircle } from 'lucide-react';
+import Footer from '../components/Footer';
 
 const LandingPage = () => {
-  const [expandedFaq, setExpandedFaq] = useState(null);
-
-  const faqs = [
-    { q: "How soon do I get paid after a weather event?", a: "For Standard and Pro plans, payouts are processed automatically via UPI within 45 minutes. Lite plan takes up to 2 hours." },
-    { q: "Can I cancel my plan anytime?", a: "Yes. All our plans are weekly. You can turn off auto-renew at any time with no cancellation fees." },
-    { q: "What counts as 'Heavy Rain' or 'Heatwave'?", a: "We use live OpenWeatherMap radar data. If rainfall exceeds 15mm/hr during your active hours, it triggers a claim." },
-    { q: "Do I need to submit photos to claim?", a: "No! Trustpay is 100% zero-touch. Our AI detects the disruption in your zone and automatically triggers the payout." },
-  ];
-
   return (
-    <>
-      <Navbar />
-      <div style={{ width: '100%', overflowX: 'hidden' }}>
-        {/* HERO SECTION */}
-        <section style={{
-          minHeight: '100vh',
-          padding: '160px 5% 80px',
-          display: 'flex',
-          alignItems: 'center',
-          position: 'relative',
-        }}>
-          {/* Subtle particle background simulation */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'radial-gradient(circle at 70% 30%, rgba(0, 224, 255, 0.08) 0%, transparent 40%)',
-            zIndex: -1
-          }}></div>
+    <div className="landing-page-container" style={{ background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      
+      {/* HERO SECTION */}
+      <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+          <img 
+            src="https://images.unsplash.com/photo-1695653422676-d9dd88400e21" 
+            alt="Delivery worker"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 100%)' }}></div>
+        </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', width: '100%', maxWidth: '1400px', margin: '0 auto', gap: '40px' }}>
-            {/* Left Col */}
-            <div style={{ flex: '1 1 60%', minWidth: '320px' }} className="animate-fade-in-up">
-              
-              <h1 style={{ fontSize: '72px', letterSpacing: '-2px', marginBottom: '24px', lineHeight: 1.1 }}>
-                Protect Your<br/>
-                Earnings with<br/>
-                Intelligent <span className="text-cyan-gradient glow-text" style={{ textShadow: '0 0 20px rgba(0,224,255,0.4)' }}>AI</span>
+        <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ maxWidth: '800px' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <h1 style={{ fontSize: '72px', fontWeight: 800, color: 'white', lineHeight: 1.1, marginBottom: '24px', letterSpacing: '-0.02em' }}>
+                Your safety net when <span style={{ color: 'var(--accent-cyan)' }}>weather</span> stops your work
               </h1>
-              
-              <p style={{ fontSize: '20px', color: 'var(--text-secondary)', maxWidth: '600px', marginBottom: '40px', lineHeight: 1.6 }}>
-                Automatic payouts when weather disruptions cut your income. Built specifically for Swiggy, Zomato & Dunzo delivery partners.
+              <p style={{ fontSize: '22px', color: 'rgba(255, 255, 255, 0.9)', lineHeight: 1.6, marginBottom: '40px', maxWidth: '650px' }}>
+                Instant payouts when rain, heat, or pollution disrupts your deliveries. No paperwork, no waiting. AI-powered income safety.
               </p>
-              
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '48px', flexWrap: 'wrap' }}>
-                <Link to="/login">
-                  <Button variant="primary" glow style={{ padding: '16px 32px', fontSize: '18px' }}>
-                    Get Protected Today
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <Link to="/register">
+                  <Button variant="primary" glow style={{ padding: '16px 36px', fontSize: '18px' }}>
+                    Register as worker <ArrowRight size={20} style={{ marginLeft: '8px' }} />
                   </Button>
                 </Link>
-                <Button variant="ghost" icon={<PlayCircle />}>
-                  Watch 2-min Demo 
-                </Button>
-              </div>
-
-              <div style={{ display: 'flex', gap: '32px', alignItems: 'center', color: 'var(--text-muted)' }}>
-                <span><strong>12,000+</strong> Workers Protected</span>
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'currentColor' }} />
-                <span><strong>₹2.4Cr</strong> Paid Out</span>
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'currentColor' }} />
-                <span><strong>4.8★</strong> Rating</span>
-              </div>
-            </div>
-
-            {/* Right Col */}
-            <div style={{ flex: '1 1 35%', position: 'relative', minWidth: '320px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ position: 'relative', zIndex: 5, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', overflow: 'visible' }}>
-                  <img 
-                    src="/swiggy-v2.png" 
-                    alt="Swiggy Delivery Partner" 
-                    style={{ 
-                      width: '130%', 
-                      maxWidth: '600px',
-                      height: 'auto',
-                      zIndex: 5,
-                      /* Use mask to hide edges of the non-transparent background */
-                      maskImage: 'radial-gradient(circle, black 50%, transparent 95%)',
-                      WebkitMaskImage: 'radial-gradient(circle, black 50%, transparent 95%)',
-                      opacity: 0.95
-                    }} 
-                  />
-                </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FEATURES SECTION */}
-        <section id="features" style={{ padding: '120px 5%', background: 'var(--bg-secondary)' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '48px', textAlign: 'center', marginBottom: '80px' }}>Why Trustpay Beats Every Alternative</h2>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
-              <Card hover>
-                <Brain size={40} color="var(--accent-cyan)" style={{ filter: 'drop-shadow(0 0 10px rgba(0,224,255,0.5))', marginBottom: '24px' }} />
-                <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>AI Risk Prediction</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Our model analyzes 47 weather + traffic signals 6 hours ahead to calculate risk and guarantee coverage.</p>
-              </Card>
-              <Card hover>
-                <Zap size={40} color="var(--accent-cyan)" style={{ marginBottom: '24px' }} />
-                <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>Zero-Touch Claims</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>No forms. No calls. No arguments. Claims are auto-approved in under 60 seconds.</p>
-              </Card>
-              <Card hover>
-                <Shield size={40} color="var(--accent-cyan)" style={{ marginBottom: '24px' }} />
-                <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>Weekly Micro-Plans</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Start from ₹20/week. No annual lock-in, no hidden fees, cancel anytime.</p>
-              </Card>
-              <Card hover>
-                <FileX size={40} color="var(--accent-cyan)" style={{ marginBottom: '24px' }} />
-                <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>Fraud Detection</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>GPS + behavioral AI flags 99.2% of false claims automatically, keeping premiums low.</p>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* HOW IT WORKS */}
-        <section id="how-it-works" style={{ padding: '120px 5%' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '48px', marginBottom: '80px' }}>Three Steps to Income Safety</h2>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', flexWrap: 'wrap', gap: '40px' }}>
-              {/* Dotted Line */}
-              <div style={{ position: 'absolute', top: '40px', left: '10%', right: '10%', height: '2px', background: 'repeating-linear-gradient(90deg, var(--border) 0, var(--border) 10px, transparent 10px, transparent 20px)', zIndex: -1, '@media (maxWidth: 768px)': { display: 'none' } }}></div>
-              
-              {[
-                { step: 1, title: 'Sign Up in 2 Minutes', icon: Smartphone, desc: 'Enter phone, city, select platform. Instant KYC via Aadhaar.' },
-                { step: 2, title: 'Choose Your Plan', icon: Shield, desc: 'AI recommends the right coverage based on your zone & history.' },
-                { step: 3, title: 'Get Paid Automatically', icon: Zap, desc: 'When disruption hits, payout lands in your UPI within minutes.' }
-              ].map(item => (
-                <div key={item.step} style={{ flex: '1 1 30%', background: 'var(--bg-primary)', padding: '0 20px' }}>
-                  <div style={{ 
-                    width: '80px', height: '80px', borderRadius: '40px', 
-                    background: 'var(--bg-secondary)', border: '2px solid var(--accent-cyan)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 24px', position: 'relative'
-                  }}>
-                    <item.icon size={32} color="var(--accent-cyan)" />
-                    <div style={{
-                      position: 'absolute', top: -10, right: -10, width: 32, height: 32,
-                      background: 'linear-gradient(135deg, var(--accent-cyan), #0077FF)',
-                      borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 'bold', border: '3px solid var(--bg-primary)'
-                    }}>{item.step}</div>
-                  </div>
-                  <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>{item.title}</h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* PLANS PREVIEW */}
-        <section id="plans" style={{ padding: '120px 5%', background: 'var(--bg-secondary)' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '48px', textAlign: 'center', marginBottom: '80px' }}>Protection Starting ₹20/week</h2>
-            
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '32px', flexWrap: 'wrap' }}>
-              
-              <Card style={{ flex: '1 1 300px', maxWidth: '350px' }}>
-                <h3 style={{ fontSize: '20px', color: 'var(--text-secondary)' }}>LITE</h3>
-                <div style={{ fontSize: '48px', fontWeight: 700, margin: '16px 0' }}>₹20<span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>/wk</span></div>
-                <div style={{ marginBottom: '32px' }}>Coverage up to: ₹800/wk</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px' }}>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> Basic weather</li>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> UPI Payout</li>
-                </ul>
-                <Button variant="outline" style={{ width: '100%' }}>Select Lite</Button>
-              </Card>
-
-              <Card glow style={{ flex: '1 1 300px', maxWidth: '380px', transform: 'scale(1.05)', position: 'relative', border: '1px solid var(--accent-cyan)' }}>
-                <Badge variant="cyan" style={{ position: 'absolute', top: '-12px', right: '16px' }}>MOST POPULAR</Badge>
-                <h3 style={{ fontSize: '20px', color: 'var(--accent-cyan)' }}>STANDARD</h3>
-                <div style={{ fontSize: '56px', fontWeight: 700, margin: '16px 0' }}>₹35<span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>/wk</span></div>
-                <div style={{ marginBottom: '32px' }}>Coverage up to: ₹1,500/wk</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px' }}>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> All Weather + Heatwave</li>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> AI Risk Alerts</li>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> 45-min Processing</li>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> Zone Recommendations</li>
-                </ul>
-                <Link to="/login" style={{ display: 'block' }}>
-                  <Button variant="primary" glow style={{ width: '100%' }}>Activate Standard</Button>
+                <Link to="/how-it-works">
+                  <Button variant="outline" style={{ padding: '16px 36px', fontSize: '18px', color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}>
+                    See how it works
+                  </Button>
                 </Link>
-              </Card>
-
-              <Card style={{ flex: '1 1 300px', maxWidth: '350px' }}>
-                <h3 style={{ fontSize: '20px', color: 'var(--accent-gold)' }}>PRO</h3>
-                <div style={{ fontSize: '48px', fontWeight: 700, margin: '16px 0' }}>₹50<span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>/wk</span></div>
-                <div style={{ marginBottom: '32px' }}>Coverage up to: ₹3,000/wk</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px' }}>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> All Events Included</li>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> Unlimited Claims</li>
-                  <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle size={16} color="var(--accent-green)"/> 15-min Processing</li>
-                </ul>
-                <Button variant="outline" style={{ width: '100%' }}>Select Pro</Button>
-              </Card>
-
-            </div>
+              </div>
+            </motion.div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* FAQ SECTION */}
-        <section id="faq" style={{ padding: '120px 5%' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '64px' }}>
-            <div style={{ flex: '1 1 300px' }}>
-              <h2 style={{ fontSize: '48px', marginBottom: '24px' }}>Got Questions?</h2>
-              <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px' }}>
-                Everything you need to know about the Trustpay platform and how we protect your daily earnings.
-              </p>
-              <Button variant="outline" style={{ padding: '12px 24px' }}>Contact Support</Button>
-            </div>
-            
-            <div style={{ flex: '2 1 500px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {faqs.map((faq, index) => (
-                <div 
-                  key={index} 
-                  style={{ 
-                    borderBottom: '1px solid var(--border)', 
-                    paddingBottom: expandedFaq === index ? '24px' : '0'
-                  }}
-                >
-                  <button 
-                    onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                    style={{
-                      width: '100%', background: 'transparent', border: 'none', color: expandedFaq === index ? 'var(--accent-cyan)' : 'var(--text-primary)',
-                      padding: '24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      fontSize: '20px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',
-                      fontFamily: 'var(--font-body)', transition: 'all 0.3s ease'
-                    }}
-                  >
-                    {faq.q}
-                    <div style={{ 
-                       width: 32, height: 32, borderRadius: '50%', background: expandedFaq === index ? 'rgba(0, 224, 255, 0.1)' : 'var(--bg-secondary)', 
-                       display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s ease',
-                       transform: expandedFaq === index ? 'rotate(180deg)' : 'none'
-                    }}>
-                       <ChevronDown size={20} color={expandedFaq === index ? "var(--accent-cyan)" : "var(--text-secondary)"} />
-                    </div>
-                  </button>
-                  <div style={{
-                       maxHeight: expandedFaq === index ? '200px' : '0',
-                       overflow: 'hidden',
-                       transition: 'max-height 0.4s ease, opacity 0.4s ease',
-                       opacity: expandedFaq === index ? 1 : 0
-                  }}>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.6, paddingRight: '40px' }}>
-                      {faq.a}
-                    </p>
+      {/* PROBLEM SECTION */}
+      <section style={{ padding: '100px 5%', background: 'var(--bg-secondary)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 80px' }}>
+            <h2 style={{ fontSize: '48px', marginBottom: '24px', color: 'var(--text-primary)' }}>The problem that started it all</h2>
+            <p style={{ fontSize: '18px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              Delivery workers lose income during heavy rain, extreme heat, severe pollution, local strikes, and curfews. Traditional insurance is slow and complex. Trustpay changes that.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '40px' }}>
+            <motion.div
+              initial={{ opacity: 0, x: -25 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Card style={{ height: '100%', border: 'none', background: 'var(--bg-primary)' }}>
+                <div style={{ padding: '40px' }}>
+                  <CloudRain size={48} color="var(--accent-red)" style={{ marginBottom: '24px' }} />
+                  <h3 style={{ fontSize: '28px', marginBottom: '32px', color: 'var(--text-primary)' }}>Traditional coverage fails workers</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {[
+                      'Weeks of waiting for claim approval',
+                      'Complex documentation requirements',
+                      'High rejection rates on valid claims',
+                      'Income lost during processing'
+                    ].map((item, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <div style={{ 
+                          width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(220, 38, 38, 0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-red)', fontWeight: 800
+                        }}>×</div>
+                        <p style={{ color: 'var(--text-muted)' }}>{item}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+              </Card>
+            </motion.div>
 
-        {/* FOOTER */}
-        <footer style={{ padding: '80px 5% 40px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '60px' }}>
-            <div style={{ flex: '2 1 300px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                <img src="/favicon.svg" alt="Trustpay Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)' }}>Trustpay<span style={{ color: 'var(--accent-cyan)' }}>.</span></span>
-              </div>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>AI-powered income safety net for<br/>India's gig economy.</p>
-            </div>
-            
-            <div style={{ flex: '1 1 150px' }}>
-              <h4 style={{ marginBottom: '24px', color: 'white' }}>Product</h4>
-              <ul style={{ listStyle: 'none', padding: 0, color: 'var(--text-secondary)' }}>
-                {['Features', 'Plans', 'How it Works', 'API'].map(link => <li key={link} style={{ marginBottom: '12px' }}><a href="#" className="hover-cyan">{link}</a></li>)}
-              </ul>
-            </div>
-
-            <div style={{ flex: '1 1 150px' }}>
-              <h4 style={{ marginBottom: '24px', color: 'white' }}>Company</h4>
-              <ul style={{ listStyle: 'none', padding: 0, color: 'var(--text-secondary)' }}>
-                {['About', 'Blog', 'Careers', 'Press'].map(link => <li key={link} style={{ marginBottom: '12px' }}><a href="#" className="hover-cyan">{link}</a></li>)}
-              </ul>
-            </div>
-
-            <div style={{ flex: '1 1 150px' }}>
-              <h4 style={{ marginBottom: '24px', color: 'white' }}>Support</h4>
-              <ul style={{ listStyle: 'none', padding: 0, color: 'var(--text-secondary)' }}>
-                {['Help Center', 'Claims', 'Contact', 'Terms'].map(link => <li key={link} style={{ marginBottom: '12px' }}><a href="#" className="hover-cyan">{link}</a></li>)}
-              </ul>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, x: 25 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Card glow style={{ height: '100%', borderColor: 'var(--accent-cyan-dim)' }}>
+                <div style={{ padding: '40px' }}>
+                  <Shield size={48} color="var(--accent-cyan)" style={{ marginBottom: '24px' }} />
+                  <h3 style={{ fontSize: '28px', marginBottom: '32px', color: 'var(--text-primary)' }}>Trustpay delivers instant protection</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {[
+                      'Automated payouts in under 2 hours',
+                      'Zero paperwork with AI verification',
+                      'Coverage starts from day one',
+                      'Affordable weekly premiums'
+                    ].map((item, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <CheckCircle size={24} color="var(--accent-green)" />
+                        <p style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
           </div>
-          
-          <div style={{ maxWidth: '1200px', margin: '60px auto 0', paddingTop: '24px', borderTop: '1px solid var(--border)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
-            © {new Date().getFullYear()} Trustpay Technologies Pvt Ltd | RBI Registered | IRDAI Licensed
+        </div>
+      </section>
+
+      {/* FEATURES SECTION */}
+      <section id="features" style={{ padding: '120px 5%', background: 'var(--bg-primary)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 80px' }}>
+            <h2 style={{ fontSize: '48px', marginBottom: '24px', color: 'var(--text-primary)' }}>Built for real protection</h2>
+            <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
+              Advanced technology meets simple coverage that actually works when you need it.
+            </p>
           </div>
-        </footer>
-      </div>
-      <style>{`
-        .hover-cyan:hover { color: var(--accent-cyan); text-decoration: none; }
-      `}</style>
-    </>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <Card hover style={{ padding: '40px', height: '100%' }}>
+                <Zap size={40} color="var(--accent-cyan)" style={{ marginBottom: '24px' }} />
+                <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>Instant verification</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  AI analyzes weather data, traffic patterns, and platform downtime to automatically verify claims without human review.
+                </p>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <Card hover style={{ padding: '40px', height: '100%' }}>
+                <TrendingUp size={40} color="var(--accent-cyan)" style={{ marginBottom: '24px' }} />
+                <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>Parametric automation</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  Coverage triggers automatically when disruption thresholds are met. No claim forms, no waiting for approval.
+                </p>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA SECTION */}
+      <section style={{ padding: '100px 5%', background: 'linear-gradient(135deg, var(--accent-cyan) 0%, #1E40AF 100%)', color: 'white' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 style={{ fontSize: '48px', fontWeight: 800, marginBottom: '24px' }}>Ready to protect your income?</h2>
+            <p style={{ fontSize: '22px', opacity: 0.9, marginBottom: '48px', maxWidth: '700px', margin: '0 auto 48px' }}>
+              Join thousands of delivery workers who trust Trustpay for reliable income protection.
+            </p>
+            <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/register">
+                <Button variant="outline" style={{ background: 'white', color: 'var(--accent-cyan)', border: 'none', padding: '16px 40px', fontSize: '18px' }}>
+                  Get started now
+                </Button>
+              </Link>
+              <Link to="/plans">
+                <Button variant="outline" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)', padding: '16px 40px', fontSize: '18px' }}>
+                  View pricing
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
   );
 };
 

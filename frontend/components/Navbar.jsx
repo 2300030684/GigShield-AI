@@ -39,13 +39,17 @@ const Navbar = () => {
       </Link>
 
       <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-        {['Features', 'How It Works', 'Plans', 'For Insurers', 'Blog'].map(link => (
-          <a key={link} href={`#${link.toLowerCase().replace(/ /g, '-')}`} style={{
-            fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, transition: 'color 0.2s ease'
-          }} onMouseOver={e => e.target.style.color = 'var(--accent-cyan)'} onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}>
-            {link}
-          </a>
-        ))}
+        {['Features', 'How It Works', 'Plans', 'Insurance Catalog', 'Blog'].map(link => {
+          const path = link === 'Blog' ? '/blog' : link === 'Insurance Catalog' ? '/insurance-catalog' : link === 'How It Works' ? '/how-it-works' : `#${link.toLowerCase().replace(/ /g, '-')}`;
+
+          return (
+            <Link key={link} to={path} style={{
+              fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, transition: 'color 0.2s ease', textDecoration: 'none'
+            }} onMouseOver={e => e.target.style.color = 'var(--accent-cyan)'} onMouseOut={e => e.target.style.color = 'var(--text-secondary)'}>
+              {link}
+            </Link>
+          );
+        })}
       </nav>
 
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>

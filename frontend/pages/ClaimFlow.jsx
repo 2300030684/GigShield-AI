@@ -52,6 +52,17 @@ const ClaimFlow = () => {
     };
   }, []);
 
+  // Load Razorpay Script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   // ── STEP 1: GET GPS LOCATION + LIVE WEATHER ──
   const handleGetLocation = () => {
     setGpsLoading(true);
@@ -159,14 +170,64 @@ const ClaimFlow = () => {
     setConfirming(true);
     setError('');
     try {
-      const result = await api.confirmClaim(claimID);
-      if (result.success) {
-        setPayout(result);
-        setStep(3);
-      }
+      // 1. Create a "Verification" Order for ₹1
+      const orderRes = await api.createPaymentOrder({ 
+        amount: 1, 
+        currency: 'INR',
+        receipt: `claim_verify_${claimID}`
+      });
+
+      if (!orderRes.id) throw new Error('Could not create payment order');
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: 'rzp_test_SeYJrzvheRHhMc',
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: 'TrustPay Integration',
+        description: 'Instant Claim Verification Fee',
+        order_id: orderRes.id,
+        handler: async (response) => {
+          try {
+            // 3. Verify Payment
+            const verifyRes = await api.verifyPaymentSignature(response);
+            if (verifyRes.success) {
+              // 4. Finalize Claim
+              const result = await api.confirmClaim(claimID);
+              if (result.success) {
+                setPayout({
+                  ...result,
+                  txnID: response.razorpay_payment_id // Use real Razorpay Payment ID
+                });
+                setStep(3);
+              }
+            } else {
+              setError('Payment verification failed.');
+            }
+          } catch (err) {
+            setError('Error finalizing claim: ' + err.message);
+          } finally {
+            setConfirming(false);
+          }
+        },
+        prefill: {
+          name: 'TrustPay User',
+          email: 'user@trustpay.ai',
+          contact: '9999999999'
+        },
+        theme: {
+          color: '#00E0FF'
+        },
+        modal: {
+          ondismiss: () => setConfirming(false)
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
     } catch (err) {
-      setError(err.message || 'Payout failed. Please try again.');
-    } finally {
+      setError(err.message || 'Verification flow failed. Please try again.');
       setConfirming(false);
     }
   };

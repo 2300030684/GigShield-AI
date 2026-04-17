@@ -122,12 +122,19 @@ const request = async (method, path, data = null) => {
        throw err;
     }
 
-    // Handle 401 or 403: clear token and redirect to auth
+    // Handle 401 or 403: clear token and redirect to login if necessary
     if (response.status === 401 || response.status === 403) {
+      const currentPath = window.location.pathname;
+      const isPublicPage = currentPath === '/' || currentPath === '/login' || currentPath === '/register';
+      
       clearToken();
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      localStorage.removeItem('tp_user'); // Also clear user data
+      
+      // Only trigger a hard redirect if we're on a protected page
+      if (!isPublicPage) {
         window.location.href = '/login';
       }
+      
       const err = new Error('Session expired or unauthorized.');
       err.isAuthError = true;
       throw err;
@@ -207,8 +214,8 @@ const api = {
   runPrediction: (data) => request('POST', '/ai/predict', data),
 
   // ── PAYMENTS ──
-  createPaymentOrder: (planType) => request('POST', '/payments/create-order', { planType }),
-  verifyPaymentSignature: (data) => request('POST', '/payments/verify-signature', data),
+  createPaymentOrder: (data) => request('POST', '/payments/create-order', data),
+  verifyPaymentSignature: (data) => request('POST', '/payments/verify-payment', data),
 
   // ── ADMIN ──
   getAdminMetrics: () => request('GET', '/admin/metrics'),
@@ -233,6 +240,13 @@ const api = {
 
   getFraudCases: (status) => request('GET', `/fraud${status ? `?status=${status}` : ''}`),
   updateFraudCase: (caseID, action) => request('POST', `/fraud/${caseID}/action`, { action }),
+  // ── BLOG ENDPOINTS ──
+  getBlogPosts: () => request('GET', '/blog'),
+  getBlogPost: (id) => request('GET', `/blog/${id}`),
+
+  // ── INSURANCE PRODUCT CATALOG ──
+  getInsuranceProducts: () => request('GET', '/insurance/products'),
+  getInsuranceProductsByCategory: (category) => request('GET', `/insurance/products/category/${category}`),
 };
 
 export default api;

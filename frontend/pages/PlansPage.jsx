@@ -8,6 +8,8 @@ import { TrustpayDB } from '../data/TrustpayData.js';
 import { TrustpayDynamicPricing } from '../data/TrustpayAI_Engine.js';
 import { DynamicPricingBanner } from '../components/AIEngineComponents.jsx';
 
+const RAZORPAY_KEY = 'rzp_test_SeYJrzvheRHhMc';
+
 const PlansPage = () => {
   const [user, setUser] = useState(null);
   const [plans, setPlans] = useState([]);
@@ -63,29 +65,111 @@ const PlansPage = () => {
     loadData();
   }, []);
 
+  // Load Razorpay Script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const handleSelectPlan = async (planId) => {
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return;
+
     try {
-      await api.activatePlan(planId, user.upiID);
-      const meRes = await api.getMe();
-      setUser(meRes.user);
-      alert(`Successfully switched to ${planId.toUpperCase()} plan.`);
+      const amount = aiPricing[planId]?.finalPremium || plan.weeklyPremium;
+      
+      // 1. Create Razorpay Order
+      const orderRes = await api.createPaymentOrder({ 
+        amount: amount, 
+        currency: 'INR',
+        receipt: `plan_${planId}_${user.id}`
+      });
+
+      if (!orderRes.id) throw new Error('Could not create payment order');
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: RAZORPAY_KEY,
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: 'TrustPay Premium',
+        description: `Activate ${plan.name}`,
+        order_id: orderRes.id,
+        handler: async (response) => {
+          try {
+            const verifyRes = await api.verifyPaymentSignature(response);
+            if (verifyRes.success) {
+              await api.activatePlan(planId, user.upiID);
+              const meRes = await api.getMe();
+              setUser(meRes.user);
+              alert(`Successfully activated ${plan.name}!`);
+            }
+          } catch (err) {
+            alert('Verification failed: ' + err.message);
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email || 'user@trustpay.ai',
+          contact: user.phone || '9999999999'
+        },
+        theme: { color: '#2563EB' }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (e) {
       console.error(e);
-      alert('Failed to update plan.');
+      alert('Failed to initiate plan activation.');
     }
   };
 
   const handleActivateCustomPlan = async () => {
     try {
-      const customData = {
-        weeklyPremium: customPremium,
-        maxCoverage: customPremium * 140, // Example multiplier for custom plans
-        events: selectedCovers
+      // 1. Create Razorpay Order for custom premium
+      const orderRes = await api.createPaymentOrder({ 
+        amount: customPremium, 
+        currency: 'INR',
+        receipt: `custom_plan_${user.id}`
+      });
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: RAZORPAY_KEY,
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: 'TrustPay Custom',
+        description: 'Personalized Coverage Activation',
+        order_id: orderRes.id,
+        handler: async (response) => {
+          try {
+            const verifyRes = await api.verifyPaymentSignature(response);
+            if (verifyRes.success) {
+              const customData = {
+                weeklyPremium: customPremium,
+                maxCoverage: customPremium * 140,
+                events: selectedCovers
+              };
+              await api.activatePlan('custom', user.upiID, customData);
+              const meRes = await api.getMe();
+              setUser(meRes.user);
+              alert('Custom Plan activated successfully!');
+            }
+          } catch (err) {
+            alert('Verification failed: ' + err.message);
+          }
+        },
+        prefill: { name: user.name },
+        theme: { color: '#06B6D4' }
       };
-      await api.activatePlan('custom', user.upiID, customData);
-      const meRes = await api.getMe();
-      setUser(meRes.user);
-      alert('Custom Plan activated successfully!');
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (e) {
       console.error(e);
       alert('Failed to activate custom plan.');

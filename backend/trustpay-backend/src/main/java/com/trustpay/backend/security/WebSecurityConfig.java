@@ -55,10 +55,13 @@ public class WebSecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/blog/**", "/api/blog").permitAll()
+                    .requestMatchers("/api/insurance/**", "/api/insurance/products").permitAll()
                     .requestMatchers("/api/health").permitAll()
                     .requestMatchers("/api/disruptions/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/payments/**").permitAll()
                     .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()));

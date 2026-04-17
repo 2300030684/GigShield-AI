@@ -9,7 +9,9 @@ import {
   LogOut,
   Settings,
   Shield,
+  Zap,
 } from 'lucide-react';
+
 import { fetchUserData } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
@@ -39,14 +41,18 @@ const Sidebar = () => {
   const navItems = [
     { label: 'Home', path: '/dashboard', icon: Home },
     { label: 'Policy', path: '/plans', icon: ShieldCheck },
+    { label: 'Catalog', path: '/catalog', icon: List },
     { label: 'AI', path: '/insights', icon: Activity },
     { label: 'Claims', path: '/claim', icon: List },
+    { label: 'Blog', path: '/blog-feed', icon: List },
     { label: 'Profile', path: '/settings', icon: User },
   ];
 
   const adminItems = [
     { label: 'Admin', path: '/admin', icon: Shield },
+    { label: 'Simulate Storm', path: '/admin/simulate', icon: Zap },
   ];
+
 
   const displayUser = user || authUser;
 
