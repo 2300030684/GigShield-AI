@@ -68,7 +68,10 @@ export default function AuthPage() {
           password: formData.password
         });
 
-        if (data) {
+          // Ensure the backend returned a token
+          if (!data.token) {
+              throw new Error("Login succeeded but no token was provided by the server.");
+          }
           const backendUser = data.user || data;
           login({ 
             id: backendUser.id || "user_1", 
@@ -78,8 +81,7 @@ export default function AuthPage() {
             activePlan: backendUser.activePlan || "none",
             isOnboardingComplete: backendUser.isOnboardingComplete === true,
             role: backendUser.role || "ROLE_WORKER",
-          }, data.token || "real_token");
-        }
+          }, data.token);
       } catch (err) {
         console.error("Login API error:", err);
         setError("Network error. Could not connect to API.");

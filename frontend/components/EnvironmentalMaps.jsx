@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Card } from './Card';
+import api from '../services/api.js';
 
 const EnvironmentalMaps = ({ city = "Bangalore", cityCoords = { lat: 12.9716, lng: 77.5946 } }) => {
   const googleMapRef = useRef(null);

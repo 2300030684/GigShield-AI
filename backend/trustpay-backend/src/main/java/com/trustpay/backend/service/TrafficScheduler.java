@@ -14,8 +14,8 @@ public class TrafficScheduler {
     private final DisruptionService disruptionService;
     private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
 
-    // Real-time polling every 10 minutes
-    @Scheduled(fixedRate = 600000)
+    // Real-time polling every 10 minutes (Disabled to prevent JVM hangs)
+    // @Scheduled(fixedRate = 600000)
     public void fetchTrafficDisruptions() {
         log.info("Starting live Traffic ingestion...");
         

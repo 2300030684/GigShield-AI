@@ -73,24 +73,35 @@ export default function RegisterPage() {
       // Step 3 -> Login: Complete Registration
       setLoading(true);
       try {
-        const data = await api.register({
+        const regData = await api.register({
           name: formData.name,
           username: formData.identifier,
           email: formData.identifier.includes("@") ? formData.identifier : `${formData.name.toLowerCase().replace(/\s/g, '')}@trustpay.ai`,
           password: formData.password
         });
 
-        if (data) {
-          const backendUser = data.user || data;
-          login({ 
-            id: backendUser.id || "user_" + Date.now(), 
-            name: backendUser.name || backendUser.username || formData.name, 
-            email: backendUser.email || formData.identifier,
-            username: backendUser.username,
-            activePlan: backendUser.activePlan || "none",
-            isOnboardingComplete: backendUser.isOnboardingComplete === true,
-            role: backendUser.role || "ROLE_WORKER",
-          }, data.token || "real_token_" + Date.now());
+        if (regData) {
+          // Immediately log them in to get valid JWT token
+          const loginData = await api.login({
+             identifier: formData.identifier,
+             email: formData.identifier, // Some endpoints use email fallback
+             password: formData.password
+          });
+          
+          if (loginData && loginData.token) {
+            const backendUser = loginData.user || loginData;
+            login({ 
+              id: backendUser.id || "user_" + Date.now(), 
+              name: backendUser.name || backendUser.username || formData.name, 
+              email: backendUser.email || formData.identifier,
+              username: backendUser.username,
+              activePlan: backendUser.activePlan || "none",
+              isOnboardingComplete: backendUser.isOnboardingComplete === true,
+              role: backendUser.role || "ROLE_WORKER",
+            }, loginData.token);
+          } else {
+             throw new Error("Did not receive token on login.");
+          }
         }
       } catch (err) {
         console.error("Registration failed:", err);

@@ -15,7 +15,6 @@ const PlansPage = () => {
   const [zoneData, setZoneData] = useState({});
   const [selectedZone, setSelectedZone] = useState('Kondapur');
   const [loading, setLoading] = useState(true);
-  const [expandedFaq, setExpandedFaq] = useState(null);
   const [aiPricing, setAiPricing] = useState({});
   const [bonusCoverage, setBonusCoverage] = useState({});
   const [masterPricing, setMasterPricing] = useState(null);
@@ -106,13 +105,6 @@ const PlansPage = () => {
 
   const activePlanId = user.plan || user.policy?.planType;
   const currentZoneData = zoneData || {};
-
-  const faqs = [
-    { q: "How soon do I get paid after a weather event?", a: `For Standard and Pro plans, payouts are processed automatically via UPI within 45 minutes. Lite plan takes up to 2 hours.` },
-    { q: "Can I cancel my plan anytime?", a: "Yes. All our plans are weekly. You can turn off auto-renew at any time with no cancellation fees." },
-    { q: "What counts as 'Heavy Rain' or 'Heatwave'?", a: "We use live OpenWeatherMap radar data. If rainfall exceeds 15mm/hr during your active hours, it triggers a claim." },
-    { q: "Do I need to submit photos to claim?", a: "No! Trustpay is 100% zero-touch. Our AI detects the disruption in your zone and automatically triggers the payout." },
-  ];
 
   // If user has an active plan, ONLY show that plan
   const plansToDisplay = activePlanId && plans.some(p => p.id === activePlanId) ? plans.filter(p => p.id === activePlanId) : plans;
@@ -415,33 +407,6 @@ const PlansPage = () => {
             </div>
           );
         })}
-      </div>
-
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <h2 style={{ fontSize: '28px', textAlign: 'center', marginBottom: '40px' }}>Frequently Asked Questions</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {faqs.map((faq, index) => (
-            <Card key={index} hover={false} style={{ padding: '0' }}>
-              <button 
-                onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                style={{
-                  width: '100%', background: 'transparent', border: 'none', color: 'var(--text-primary)',
-                  padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  fontSize: '18px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',
-                  fontFamily: 'var(--font-body)'
-                }}
-              >
-                {faq.q}
-                {expandedFaq === index ? <ChevronUp /> : <ChevronDown />}
-              </button>
-              {expandedFaq === index && (
-                <div className="animate-fade-in-up" style={{ padding: '0 24px 24px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                  {faq.a}
-                </div>
-              )}
-            </Card>
-          ))}
-        </div>
       </div>
     </div>
   );

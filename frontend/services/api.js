@@ -57,15 +57,17 @@ const mockHandler = async (method, path, data) => {
     if (path === '/policies/plans') return { plans: TrustpayDB.plans };
     return { policy: TrustpayComputed.currentPlan() };
   }
-  if (path === '/location' || path === '/location/update-live') {
+  if (path === '/location' || path === '/location/update-live' || path === '/location/verify') {
     return { success: true };
   }
+  if (path === '/ai/predict') {
+    return { risk_score: 0.42, risk_tier: "MEDIUM", confidence: 0.78, model_type: "MOCK_HANDLER" };
+  }
+  if (path === '/disruptions/live') {
+    return { disruptions: [] };
+  }
   if (path === '/users/login' || path === '/auth/signup' || path === '/users/register') {
-    let localUserStr = localStorage.getItem('tp_user');
-    let localUser = {};
-    try { if (localUserStr) localUser = JSON.parse(localUserStr); } catch(e) {}
-    const mergedUser = { ...TrustpayDB.currentUser, ...localUser };
-    return { token: 'mock_token_123', user: mergedUser };
+      throw new Error(`[TRUSTPAY SYSTEM] Authentication Backend is unreachable or returned an unexpected error. Mock logins are disabled to prevent ghost sessions. Path: ${path}`);
   }
   if (path.startsWith('/admin/metrics')) {
     return TrustpayDB.adminMetrics;
@@ -108,13 +110,27 @@ const request = async (method, path, data = null) => {
   try {
     const response = await fetch(`${API_BASE}${apiPath}`, options);
 
-    // Handle 401: clear token and redirect to auth
-    if (response.status === 401) {
+    if (apiPath === '/auth/login' && response.status === 401) {
+       const err = new Error('Invalid credentials. Please register or try again.');
+       err.isAuthError = true;
+       throw err;
+    }
+    if (apiPath === '/auth/register' && response.status === 400) {
+       const text = await response.text();
+       const err = new Error(text || 'Registration failed (Username might already exist).');
+       err.isAuthError = true;
+       throw err;
+    }
+
+    // Handle 401 or 403: clear token and redirect to auth
+    if (response.status === 401 || response.status === 403) {
       clearToken();
-      if (window.location.pathname !== '/login') {
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
         window.location.href = '/login';
       }
-      throw new Error('Session expired.');
+      const err = new Error('Session expired or unauthorized.');
+      err.isAuthError = true;
+      throw err;
     }
 
     if (!response.ok) {
@@ -126,6 +142,8 @@ const request = async (method, path, data = null) => {
     if (!text) return { success: true };
     return JSON.parse(text);
   } catch (err) {
+    if (err.isAuthError) throw err;
+    
     console.warn(`[HYBRID MODE] Backend connection failed for ${apiPath}: ${err.message}. Seamlessly falling back to Mock Data.`);
     return mockHandler(method, path, data);
   }

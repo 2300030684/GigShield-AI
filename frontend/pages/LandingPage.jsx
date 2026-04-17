@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
-import { PlayCircle, Brain, Zap, Shield, FileX, MapPin, CheckCircle, Smartphone, ShieldCheck } from 'lucide-react';
+import { PlayCircle, Brain, Zap, Shield, FileX, MapPin, CheckCircle, Smartphone, ShieldCheck, ChevronDown } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
+  const [expandedFaq, setExpandedFaq] = useState(null);
+
+  const faqs = [
+    { q: "How soon do I get paid after a weather event?", a: "For Standard and Pro plans, payouts are processed automatically via UPI within 45 minutes. Lite plan takes up to 2 hours." },
+    { q: "Can I cancel my plan anytime?", a: "Yes. All our plans are weekly. You can turn off auto-renew at any time with no cancellation fees." },
+    { q: "What counts as 'Heavy Rain' or 'Heatwave'?", a: "We use live OpenWeatherMap radar data. If rainfall exceeds 15mm/hr during your active hours, it triggers a claim." },
+    { q: "Do I need to submit photos to claim?", a: "No! Trustpay is 100% zero-touch. Our AI detects the disruption in your zone and automatically triggers the payout." },
+  ];
+
   return (
     <>
       <Navbar />
@@ -195,6 +204,60 @@ const LandingPage = () => {
                 <Button variant="outline" style={{ width: '100%' }}>Select Pro</Button>
               </Card>
 
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ SECTION */}
+        <section id="faq" style={{ padding: '120px 5%' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '64px' }}>
+            <div style={{ flex: '1 1 300px' }}>
+              <h2 style={{ fontSize: '48px', marginBottom: '24px' }}>Got Questions?</h2>
+              <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px' }}>
+                Everything you need to know about the Trustpay platform and how we protect your daily earnings.
+              </p>
+              <Button variant="outline" style={{ padding: '12px 24px' }}>Contact Support</Button>
+            </div>
+            
+            <div style={{ flex: '2 1 500px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {faqs.map((faq, index) => (
+                <div 
+                  key={index} 
+                  style={{ 
+                    borderBottom: '1px solid var(--border)', 
+                    paddingBottom: expandedFaq === index ? '24px' : '0'
+                  }}
+                >
+                  <button 
+                    onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                    style={{
+                      width: '100%', background: 'transparent', border: 'none', color: expandedFaq === index ? 'var(--accent-cyan)' : 'var(--text-primary)',
+                      padding: '24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      fontSize: '20px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',
+                      fontFamily: 'var(--font-body)', transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {faq.q}
+                    <div style={{ 
+                       width: 32, height: 32, borderRadius: '50%', background: expandedFaq === index ? 'rgba(0, 224, 255, 0.1)' : 'var(--bg-secondary)', 
+                       display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s ease',
+                       transform: expandedFaq === index ? 'rotate(180deg)' : 'none'
+                    }}>
+                       <ChevronDown size={20} color={expandedFaq === index ? "var(--accent-cyan)" : "var(--text-secondary)"} />
+                    </div>
+                  </button>
+                  <div style={{
+                       maxHeight: expandedFaq === index ? '200px' : '0',
+                       overflow: 'hidden',
+                       transition: 'max-height 0.4s ease, opacity 0.4s ease',
+                       opacity: expandedFaq === index ? 1 : 0
+                  }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.6, paddingRight: '40px' }}>
+                      {faq.a}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>

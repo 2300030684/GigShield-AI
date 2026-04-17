@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { LogOut, User, Shield, ShieldCheck, Activity, AlertCircle, ArrowUpRight } from 'lucide-react';
+import api from '../services/api.js';
 import './Onboarding.css';
 
 export default function OnboardingPage() {
@@ -102,12 +103,14 @@ export default function OnboardingPage() {
         upiID: formData.payoutMethod === 'upi' ? formData.upiId : formData.bankAccount,
       };
 
-      import('../services/api.js').then(async (m) => {
-        const api = m.default;
+      const submitData = async () => {
         try {
           await api.updateProfile(submissionData);
           // Persist onboarding data to localStorage so dashboard can read it
-          const savedUser = JSON.parse(localStorage.getItem('tp_user') || '{}');
+          let savedUserStr = localStorage.getItem('tp_user');
+          if (savedUserStr === 'undefined') savedUserStr = '{}';
+          const savedUser = JSON.parse(savedUserStr || '{}');
+          
           const updatedUser = {
             ...savedUser,
             ...submissionData,
@@ -127,7 +130,9 @@ export default function OnboardingPage() {
           alert("We couldn't save your details. Please try again.");
           setIsSubmitting(false);
         }
-      });
+      };
+      
+      submitData();
     }
   };
 
@@ -410,7 +415,7 @@ export default function OnboardingPage() {
                       value={formData.upiId}
                       onChange={(e) => setFormData({...formData, upiId: e.target.value})}
                     />
-                    <button className="verify-btn" onClick={() => setFormData({...formData, isUpiVerified: true})}>
+                    <button type="button" className="verify-btn" onClick={() => setFormData({...formData, isUpiVerified: true})}>
                       {formData.isUpiVerified ? "VERIFIED ✅" : "VERIFY"}
                     </button>
                   </div>
