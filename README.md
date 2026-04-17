@@ -32,6 +32,18 @@ We built TrustPay to provide **instant financial protection using AI and automat
 
 <img width="1000" height="750" alt="image" src="https://github.com/user-attachments/assets/0814eb1d-a93a-4659-9acb-c80bf465dce6" />
 
+**Flow:**
+Frontend → Backend → AI Engine → External APIs → Database
+---
+
+## 📊 Pitch Deck
+
+👉 [View Pitch Deck](https://drive.google.com/file/d/17Bmk4pyPx-_trEa4e9M10Xt2fGlZ8JXm/view?usp=sharing)
+---
+
+## 🎥 Demo Video
+
+👉 [Watch Demo](https://your-video-link-here)
 
 ---
 
@@ -72,7 +84,7 @@ We built TrustPay to provide **instant financial protection using AI and automat
 **Frontend:** React / HTML, CSS
 **Backend:** Spring Boot (Java)
 **Database:** MySQL
-**AI/ML:** Python (Scikit-learn)
+**AI Logic:** Rule-based + ML-ready scoring system
 **APIs:** Weather API, AQI API
 
 ---
@@ -169,7 +181,7 @@ fetch("http://localhost:8080/api/register", {
   body: JSON.stringify(data)
 });
 ```
-##Demo Instructions (For Judges)
+## 🧪 Demo Instructions (For Judges)
 
 To test the application easily:
 - 👤 Use any email or phone number  
@@ -194,6 +206,16 @@ To test the application easily:
 * Ramisetty Veera Venkata Naga Siva Sai
 * Peddinti Neha
 * Burri Vishnu Venkata Rama Sai
+
+---
+
+## 🏆 Why TrustPay?
+
+- ⚡ Fully automated claim system (no paperwork)
+- 🧠 AI-driven decision making
+- 💰 Instant payout simulation
+- 📊 Real-time monitoring
+- 🚚 Built specifically for gig workers
 
 ---
 
