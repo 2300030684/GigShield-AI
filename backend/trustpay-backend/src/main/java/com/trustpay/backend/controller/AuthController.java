@@ -5,6 +5,8 @@ import com.trustpay.backend.model.User;
 import com.trustpay.backend.repository.UserRepository;
 import com.trustpay.backend.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -29,12 +33,13 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_WORKER");
         
-        // ── SIMULATED OTP LOGIC ──
+        // ── [DEMO MODE] OTP Simulation ──
+        // ⚠️  In production: replace with SMS gateway (Twilio/MSG91)
         String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
-        System.out.println("========================================");
-        System.out.println("TRUSTPAY OTP FOR " + user.getUsername() + ": " + otp);
-        System.out.println("========================================");
-        user.setOtp(otp); // Assuming User model has a String otp field
+        log.info("[DEMO-OTP] ══════════════════════════════════════════");
+        log.info("[DEMO-OTP] TrustPay OTP for @{}: {}", user.getUsername(), otp);
+        log.info("[DEMO-OTP] ══════════════════════════════════════════");
+        user.setOtp(otp);
 
         return ResponseEntity.ok(userRepository.save(user));
     }

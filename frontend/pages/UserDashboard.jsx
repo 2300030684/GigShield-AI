@@ -1,13 +1,188 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowUpRight, Shield, IndianRupee, TrendingUp, Star, AlertCircle, Loader2, MapPin } from 'lucide-react';
+import { ArrowUpRight, Shield, AlertCircle, Loader2, MapPin, Wind, Thermometer, Droplets, Brain, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import { DisruptionBanner, ZeroTouchOverlay, useDashboardTriggers, H3RiskMap } from '../components/AIEngineComponents.jsx';
 import { h3Index } from '../utils/h3_simulator.js';
+
+// ══════════════════════════════════════════════════════
+//  WEATHER + ML RISK STRIP COMPONENT
+//  Shows live: temp, rainfall, AQI, ML risk score
+// ══════════════════════════════════════════════════════
+const WeatherRiskStrip = ({ lat, lng }) => {
+  const [weather, setWeather] = useState(null);
+  const [mlRisk, setMlRisk] = useState(null);
+  const [stripLoading, setStripLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStripData = async () => {
+      try {
+        const WEATHER_KEY = import.meta.env.VITE_WEATHER_API_KEY || 'fd75a6170acc3ea58cc247f5682253e6';
+        const useLat = lat || 17.4726;
+        const useLng = lng || 78.3572;
+
+        // Fetch weather directly from OWM
+        const [weatherRes, aqiRes] = await Promise.allSettled([
+          fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${useLat}&lon=${useLng}&appid=${WEATHER_KEY}&units=metric`)
+            .then(r => r.json()),
+          fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${useLat}&lon=${useLng}&appid=${WEATHER_KEY}`)
+            .then(r => r.json()),
+        ]);
+
+        const w = weatherRes.status === 'fulfilled' ? weatherRes.value : null;
+        const a = aqiRes.status === 'fulfilled' ? aqiRes.value : null;
+
+        const temp = w?.main?.temp ?? 30;
+        const rain = w?.rain?.['1h'] ?? 0;
+        const windSpeed = w?.wind?.speed ?? 0;
+        const humidity = w?.main?.humidity ?? 60;
+        const aqi = a?.list?.[0]?.main?.aqi ?? 2;
+        const aqiScaled = aqi * 50;
+        const condition = w?.weather?.[0]?.main ?? 'Clear';
+
+        setWeather({ temp, rain, windSpeed, humidity, aqi, aqiScaled, condition });
+
+        // Call ML prediction via backend
+        try {
+          const mlRes = await api.runPrediction({ lat: useLat, lng: useLng });
+          setMlRisk(mlRes);
+        } catch (_) {
+          // Fallback rule-based risk
+          const riskScore = Math.min((rain / 120 * 0.4) + (Math.max(temp - 28, 0) / 22 * 0.3) + (aqiScaled / 200 * 0.3), 1);
+          setMlRisk({
+            risk_score: riskScore,
+            risk_tier: riskScore > 0.65 ? 'HIGH' : riskScore > 0.35 ? 'MEDIUM' : 'LOW',
+            model_type: 'CLIENT_FALLBACK'
+          });
+        }
+      } catch (err) {
+        console.warn('WeatherRiskStrip fetch failed:', err);
+      } finally {
+        setStripLoading(false);
+      }
+    };
+
+    fetchStripData();
+    // Refresh every 10 minutes
+    const interval = setInterval(fetchStripData, 600_000);
+    return () => clearInterval(interval);
+  }, [lat, lng]);
+
+  const riskColor = mlRisk?.risk_tier === 'HIGH' ? '#EF4444'
+                  : mlRisk?.risk_tier === 'MEDIUM' ? '#F59E0B'
+                  : '#10B981';
+
+  const aqiLabel = weather ? (
+    weather.aqi === 1 ? 'Good' :
+    weather.aqi === 2 ? 'Fair' :
+    weather.aqi === 3 ? 'Moderate' :
+    weather.aqi === 4 ? 'Poor' : 'Very Poor'
+  ) : '---';
+
+  const aqiColor = weather ? (
+    weather.aqi <= 2 ? '#10B981' :
+    weather.aqi === 3 ? '#F59E0B' : '#EF4444'
+  ) : '#888';
+
+  if (stripLoading) return null;
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0',
+      background: 'linear-gradient(135deg, rgba(6,182,212,0.08) 0%, rgba(16,185,129,0.06) 100%)',
+      border: '1px solid rgba(6,182,212,0.2)',
+      borderRadius: '16px',
+      padding: '14px 24px',
+      marginBottom: '28px',
+      flexWrap: 'wrap',
+      gap: '0',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
+      {/* Live dot */}
+      <div style={{ position: 'absolute', top: 14, right: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', animation: 'pulse 2s infinite' }} />
+        <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>LIVE</span>
+      </div>
+
+      {/* Weather metrics */}
+      {[
+        {
+          icon: <Thermometer size={16} />,
+          label: 'Temp',
+          value: weather ? `${weather.temp.toFixed(1)}°C` : '---',
+          color: weather?.temp > 42 ? '#EF4444' : '#F59E0B',
+        },
+        {
+          icon: <Droplets size={16} />,
+          label: 'Rainfall',
+          value: weather ? `${weather.rain.toFixed(1)}mm` : '---',
+          color: weather?.rain > 50 ? '#EF4444' : '#06B6D4',
+        },
+        {
+          icon: <Wind size={16} />,
+          label: 'Wind',
+          value: weather ? `${(weather.windSpeed * 3.6).toFixed(0)} km/h` : '---',
+          color: '#94A3B8',
+        },
+        {
+          icon: <span style={{ fontSize: 16 }}>☁</span>,
+          label: `AQI (${aqiLabel})`,
+          value: weather ? `${weather.aqiScaled}` : '---',
+          color: aqiColor,
+        },
+      ].map((m, i) => (
+        <div key={i} style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '0 20px',
+          borderRight: i < 3 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        }}>
+          <span style={{ color: m.color }}>{m.icon}</span>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{m.label}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: m.color }}>{m.value}</div>
+          </div>
+        </div>
+      ))}
+
+      {/* ML Risk Score */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '0 20px',
+        borderLeft: '1px solid rgba(255,255,255,0.08)',
+        marginLeft: 'auto',
+      }}>
+        <Brain size={16} style={{ color: riskColor }} />
+        <div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>ML Risk Score</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: riskColor }}>
+              {mlRisk ? (mlRisk.risk_score * 100).toFixed(0) : '--'}/100
+            </div>
+            <span style={{
+              fontSize: 10, fontWeight: 700,
+              background: `${riskColor}20`, color: riskColor,
+              padding: '2px 8px', borderRadius: 6, border: `1px solid ${riskColor}40`
+            }}>
+              {mlRisk?.risk_tier ?? 'N/A'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -106,6 +281,9 @@ const UserDashboard = () => {
 
   return (
     <div className="animate-fade-in-up" style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '80px' }}>
+      {/* ── WEATHER + ML RISK STRIP ── */}
+      <WeatherRiskStrip lat={user.latitude} lng={user.longitude} />
+
       {/* ── DISRUPTION BANNERS (auto-trigger) ── */}
       {activeTriggers.map(trigger => (
         <DisruptionBanner
