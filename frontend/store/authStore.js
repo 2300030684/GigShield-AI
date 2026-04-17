@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 let globalState = {
   user: null,
   token: localStorage.getItem('token'),
+  role: localStorage.getItem('role'),
   listeners: new Set()
 };
 
@@ -71,32 +72,22 @@ export const useAuthStore = () => {
     // Immediate sync to global state for route guards
     globalState.user = userWithStatus;
     globalState.token = userToken;
+    globalState.role = userWithStatus.role;
     
-    // Persist
+    // Persist individually
     localStorage.setItem('user', JSON.stringify(userWithStatus));
     localStorage.setItem('token', userToken);
+    localStorage.setItem('role', userWithStatus.role);
     
     notifyListeners();
   }, []);
 
   const logout = useCallback(async () => {
-    const token = globalState.token;
-    
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');    sessionStorage.clear();
-    
+    localStorage.clear(); // Definitive clear as requested
     globalState.user = null;
     globalState.token = null;
+    globalState.role = null;
     notifyListeners();
-
-    try {
-      if (token) {
-        fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        }).catch(() => {});
-      }
-    } catch (_) {}
   }, []);
 
   const completeOnboarding = useCallback(() => {

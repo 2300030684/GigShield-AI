@@ -104,8 +104,8 @@ function App() {
           <Route path="/insurance-catalog" element={<InsuranceCatalog />} />
         </Route>
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+        {/* Protected Routes — Worker & Admin have access to main dashboard */}
+        <Route element={<ProtectedRoute allowedRoles={['ROLE_WORKER', 'ROLE_ADMIN']}><Outlet /></ProtectedRoute>}>
           {/* Onboarding — must complete before accessing any other page */}
           <Route path="/onboarding" element={<OnboardingPage />} />
 
@@ -121,8 +121,8 @@ function App() {
               <Route path="/blog-feed"   element={<BlogPage />} />
               <Route path="/catalog"     element={<InsuranceCatalog />} />
 
-              {/* Admin-only pages */}
-              <Route element={<AdminRoute />}>
+              {/* Admin-only pages — strictly restricted to ROLE_ADMIN */}
+              <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']}><Outlet /></ProtectedRoute>}>
                 <Route path="/admin"       element={<AdminDashboard />} />
                 <Route path="/admin/fraud" element={<FraudMonitor />} />
                 <Route path="/admin/simulate" element={<StormSimulator />} />

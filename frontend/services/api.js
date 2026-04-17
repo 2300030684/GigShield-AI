@@ -129,8 +129,7 @@ const request = async (method, path, data = null) => {
       const currentPath = window.location.pathname;
       const isPublicPage = currentPath === '/' || currentPath === '/login' || currentPath === '/register';
       
-      clearToken();
-      localStorage.removeItem('user'); // Also clear user data
+      localStorage.clear(); // Definitive clear as requested
       
       // Only trigger a hard redirect if we're on a protected page
       if (!isPublicPage) {

@@ -73,14 +73,15 @@ export default function AuthPage() {
               throw new Error("Login succeeded but no token was provided by the server.");
           }
           const backendUser = data.user || data;
-          // ── STANDARDIZED STORAGE WRITE ──
+          // ── DEFINITIVE STORAGE WRITE ──
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(backendUser));
+          localStorage.setItem('role', backendUser.role || 'ROLE_WORKER');
 
-          // Then update the store (listeners)
+          // Update store (this will notify any sidebar/navbar listeners)
           login(backendUser, data.token);
           
-          // Only navigate AFTER storage is confirmed (implicit in sequential execution here)
+          // Final step: navigate
           const redirectPath = backendUser.activePlan && backendUser.activePlan !== 'none' ? "/dashboard" : "/plans";
           navigate(backendUser.isOnboardingComplete ? redirectPath : "/onboarding", { replace: true });
       } catch (err) {
